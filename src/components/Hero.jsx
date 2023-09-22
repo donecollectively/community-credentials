@@ -20,11 +20,12 @@ export class SampleClass {
 }`
 
 const tabs = [
-    { name: 'Cat.ts', isActive: true },
-    { name: 'Hat.ts', isActive: false },
-    { name: 'Thing1.ts', isActive: false },
-    { name: 'Thing2.ts', isActive: false },
+    // { name: 'Cat.ts', isActive: true },
+    // { name: 'Hat.ts', isActive: false },
+    // { name: 'Thing1.ts', isActive: false },
+    // { name: 'Thing2.ts', isActive: false },
 ]
+const hasTabs = !!tabs.length
 
 function TrafficLightsIcon(props) {
   return (
@@ -53,21 +54,16 @@ export function Hero() {
             />
             <div className="relative">
               <p className="inline bg-gradient-to-r from-indigo-200 via-sky-400 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
-              { //!!!customize
-                }
-                Your Great Hero Title Here
+                Web 3 Skill Community
               </p>
               <p className="mt-3 text-2xl tracking-tight text-slate-400">
-              { //!!!customize
-                }
-                Big tagline to inspire deeper engagement
+                Sharing information for verifying skills needed and recognized 
+                by our communities on Cardano, and beyond
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
-                <Button href="/docs/starting/installation">Get started</Button>
-                { //!!!customize
-                }
-                <Button href="https://github.com/your-repo-here" target="_blank" variant="secondary">
-                  View on GitHub
+                <Button href="/getting-started">Get started</Button>
+                <Button href="https://about.web3association.co/" target="_blank" variant="secondary">
+                   More about the Web 3 Association
                 </Button>
               </div>
             </div>
@@ -95,6 +91,7 @@ export function Hero() {
                 unoptimized
                 priority
               />
+              {hasTabs && <>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-sky-300 via-sky-300/70 to-blue-300 opacity-10 blur-lg" />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-sky-300 via-sky-300/70 to-blue-300 opacity-10" />
               <div className="relative rounded-2xl bg-[#0A101F]/80 ring-1 ring-white/10 backdrop-blur">
@@ -176,6 +173,7 @@ export function Hero() {
                   </div>
                 </div>
               </div>
+              </>}
             </div>
           </div>
         </div>

@@ -62,7 +62,7 @@ function Header({ navigation }) {
         <div className="ml-5">
         { //!!!customize
                 }
-            HEADER NOTIFICATION IF ANY GOES HERE
+            ALPHA
             </div>
             </div>
             </div>

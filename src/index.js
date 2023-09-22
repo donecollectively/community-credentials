@@ -7,17 +7,17 @@ export const navigation = [
         ],
     },
     {
-        title: "Header 1",
+        title: "Communities and Certifications",
         links: [
-            { title: "link1", href: "/page1" },
-            { title: "link2", href: "/subdir/page2" },
+            { title: "Certifications", href: "/certifications" },
+            { title: "Communities", href: "/communities" },
         ],
     },
     {
-        title: "Header 2",
+        title: "More About Us",
         links: [
-            { title: "link3", href: "/page3" },
-            { title: "link4", href: "/page4" },
+            { title: "Web 3 Association", href: "/page3" },
+            { title: "LearnerShape", href: "/page4" },
         ],
     },
 ]
