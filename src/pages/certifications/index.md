@@ -9,7 +9,7 @@ Click to view more information about any credential
 
 | Type| Name | Issuer | Description |
 |--|--|--|--|
-| humanity | well-known | ODIN | This person is known to the ODIN community, and that this same person doesn't have any other ODIN-issued humanity cert.|
+| humanity | {% link label="well-known" href="/certifications/example/view"    /%} | ODIN | This person is known to the ODIN community, and that this same person doesn't have any other ODIN-issued humanity cert.|
 | humanity | Swam Veteran | Swarm |  This person is a contributor to the Swarm, known and contributing to the Swarm community in some way for a significant time period |
 | identity | Verified Artist | DEMU | This person is an artist registered on the DEMU Platform, whose identity information has been verified by DEMU staff and/or community |
 | identity | Verified Anonymous Identity | ProofSpace | This person has been verified using ProofSpace's KYC tools, and the person's privacy is protected; no additional information is included in the cert |
