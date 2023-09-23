@@ -1,5 +1,6 @@
 import { Callout } from '@/components/Callout'
 import { QuickLink, QuickLinks } from '@/components/QuickLinks'
+import Link from 'next/link'
 
 const tags = {
     br: {
@@ -18,6 +19,17 @@ const tags = {
       },
     },
     render: Callout,
+  },
+  link: {
+    selfClosing: true,
+    render({href, target, label}) { 
+        return <Link {...{href, target}}>{label}</Link>
+    },
+    attributes: {
+      href: { type: String },
+      target: { type: String },
+      label: { type: String },
+    },
   },
   figure: {
     selfClosing: true,
