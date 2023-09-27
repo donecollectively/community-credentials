@@ -4,7 +4,7 @@ const withMarkdoc = require('@markdoc/next.js')
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  pageExtensions: ['js', 'jsx', 'md'],
+  pageExtensions: ['js', 'jsx', 'tsx', 'md'],
   experimental: {
     scrollRestoration: true,
   },
