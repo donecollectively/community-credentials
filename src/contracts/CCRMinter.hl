@@ -10,11 +10,11 @@ const seedIndex : Int = 42
 
 //!!! todo: support import from within same constellation
 // !!! and get rid of these duplicated helpers
-func tnCredUUT(credId: String) -> String {
-    ("cred-"+credId)
+func tnRegCredUUT(credId: String) -> String {
+    ("rcred-"+credId)
 }
 func tnLIT(credId: String) -> String {
-    ("link:cred-"+credId)
+    ("link:rcred-"+credId)
 }
 
 enum Redeemer { 

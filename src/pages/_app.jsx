@@ -2,6 +2,7 @@ import Head from 'next/head'
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 
 import { Layout } from '@/components/Layout'
+import Script from 'next/script'
 
 import 'focus-visible'
 import '@/styles/tailwind.css'
@@ -65,8 +66,8 @@ const GA_ID = "XXXX!!!customize";
   return (
     <>
       <Head>
-        <script async src={`https://www.googletagmanager.com/gtag/js?id={GA_ID}`}></script>
-        <script type='text/javascript' children={`
+        {/* <Script async src={`https://www.googletagmanager.com/gtag/js?id={GA_ID}`}></Script>
+        <Script type='text/javascript' children={`
         if (typeof window !== 'undefined') {
             window.dataLayer = window.dataLayer || [];
             function gtag(){window.dataLayer.push(arguments)}
@@ -74,7 +75,7 @@ const GA_ID = "XXXX!!!customize";
 
             gtag('config', '${GA_ID}');
         } 
-            `} />
+            `} /> */}
     <title>{pageTitle}</title>
         {description && <meta name="description" content={description} />}
 

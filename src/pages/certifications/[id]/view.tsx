@@ -3,34 +3,37 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 import { useState } from "react"
 import { createPortal } from "react-dom"
-import { Prose } from "../../../components/Prose"
+import { Prose } from "@/components/Prose"
+import { useLiveQuery } from "dexie-react-hooks"
+import { Address } from "@hyperionbt/helios"
 
-// ViewCert.getPageProps = async (ctx) => {
-ViewCert.getInitialPXXrops = async (ctx) => {
-    debugger
-    const { id } = ctx.query
-    if ("undefined" == typeof window) return {}
+// ViewCert.getInitialPXXrops = async (ctx) => {
+//     const { id } = ctx.query
+//     if ("undefined" == typeof window) return {}
 
-    await new Promise((r) => setTimeout(r, 400))
-    return { sidebar: [<div>hi sidebar {id}</div>] }
-    const res = await fetch("https://api.github.com/repos/vercel/next.js")
-    const json = await res.json()
-    return { stars: json.stargazers_count }
-}
+//     await new Promise((r) => setTimeout(r, 400))
+//     return { sidebar: [<div>hi sidebar {id}</div>] }
+//     const res = await fetch("https://api.github.com/repos/vercel/next.js")
+//     const json = await res.json()
+//     return { stars: json.stargazers_count }
+// }
 
 export default function ViewCert(props) {
     const { query } = useRouter()
     const [rendered, firstRender] = useState(null)
     if (!rendered) setTimeout(() => firstRender(true), 10)
     // const [posts, setPosts] = useState(null);
-
     // useEffect(() => {    fetchPosts().then(p => setPosts(p));  }, []);
     const metaTable = (
-        <Prose>
-            <table className="mt-16 text-gray-400 table-auto">
+        <Prose className="">
+            <table className="mt-16 table-auto text-gray-400">
                 <tbody>
                     <tr>
-                        <th>Issued by<br/><br/></th>
+                        <th>
+                            Issued by
+                            <br />
+                            <br />
+                        </th>
                         <td>
                             <strong>LearnerShape SkillsGraph</strong>
                         </td>
@@ -78,6 +81,10 @@ export default function ViewCert(props) {
         }
     }
 
+    // const tt =  new Address("addr1qx6p9k4rq077r7q4jdkv7xfz639tts6jzxsr3fatqxdp2y9w9cdd2uueqwnv0cw9gne02c0mzrvfsrk884lry7kpka8shpy5qw")
+    // const ttt = Address.fromHash(tt.pubKeyHash, false)
+    // {ttt.toBech32()}
+
     return (
         <div>
             <Head>
@@ -86,30 +93,40 @@ export default function ViewCert(props) {
                     SkillsGraph
                 </title>
             </Head>
-            <span className="text-slate-700">
-                        [EXAMPLE]</span>
+
             <h2>Cardano Smart Contract dApp Architect</h2>
-                <div >
-                    <h4>Certificate Description <span className="text-slate-700">
-                        [same as on List page]</span>
-                    </h4>
+            <div>
+                <h4>
+                    Certificate Description{" "}
+                    <span className="text-slate-700">
+                        [same as on List page]
+                    </span>
+                </h4>
 
-                    <p>
-                        The holder is a experienced software engineer with
-                        expertise in web application development, Cardano ledger
-                        principles, Plutus smart-contract design, and other
-                        technologies needed to create fully-functional
-                        decentralized applications for the Cardano blockchain.
-                    </p>
+                <p>
+                    The holder is a experienced software engineer with expertise
+                    in web application development, Cardano ledger principles,
+                    Plutus smart-contract design, and other technologies needed
+                    to create fully-functional decentralized applications for
+                    the Cardano blockchain.
+                </p>
 
-                    <h4>Expectations of a Credential Holder</h4>
-                    <div className="hidden">Skills, Capabilities / Experience</div>
-                    <ul className="list-none">
-                        <li>☐&nbsp;&nbsp;&nbsp;Can create technical design of complete dApp systems</li>
-                        <li>☐&nbsp;&nbsp;&nbsp;Proficient with web technologies</li>
-                        <li>☐&nbsp;&nbsp;&nbsp;Can design Cardano smart contracts</li>
-                        <li>☐&nbsp;&nbsp;&nbsp;Familiar with on- and off-chain operational and data models</li>
-                    </ul>
+                <h4>Expectations of a Credential Holder</h4>
+                <div className="hidden">Skills, Capabilities / Experience</div>
+                <ul className="list-none">
+                    <li>
+                        ☐&nbsp;&nbsp;&nbsp;Can create technical design of
+                        complete dApp systems
+                    </li>
+                    <li>☐&nbsp;&nbsp;&nbsp;Proficient with web technologies</li>
+                    <li>
+                        ☐&nbsp;&nbsp;&nbsp;Can design Cardano smart contracts
+                    </li>
+                    <li>
+                        ☐&nbsp;&nbsp;&nbsp;Familiar with on- and off-chain
+                        operational and data models
+                    </li>
+                </ul>
             </div>
             <h4>Issuance requirements / Governance Process</h4>
 

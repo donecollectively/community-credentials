@@ -39,7 +39,7 @@ export class CCRMinter extends DefaultMinter {
 
     @Activity.redeemer
     protected commissioningNewCred(credId: string): isActivity {
-        const t = new this.configuredContract.types.Redeemer.commissioningNewCred(
+        const t = new this.scriptProgram.types.Redeemer.commissioningNewCred(
             credId
         );
 
@@ -48,7 +48,7 @@ export class CCRMinter extends DefaultMinter {
 
     @Activity.redeemer
     protected mintingLIT(credId: string): isActivity {
-        const t = new this.configuredContract.types.Redeemer.mintLIT({
+        const t = new this.scriptProgram.types.Redeemer.mintLIT({
             credId
         });
 
@@ -56,11 +56,11 @@ export class CCRMinter extends DefaultMinter {
     }
 
     //!!! todo: eliminate these duplicate functions one way or other
-    tnCredUUT(credId: string) {
-        return `cred-${credId}`;
+    tnRegCredUUT(credId: string) {
+        return `rcred-${credId}`;
     }
     tnLIT(credId: string) {
-        return `link:cred${credId}`;
+        return `link:rcred${credId}`;
     }
 
     @Activity.partialTxn
@@ -69,7 +69,7 @@ export class CCRMinter extends DefaultMinter {
         credId: string
     ): Promise<StellarTxnContext> {
         let namesAndCounts: tokenNamesOrValuesEntry[] = [
-            [this.tnCredUUT(credId), 1n],
+            [this.tnRegCredUUT(credId), 1n],
              [this.tnLIT(credId), 1n],
         ];
         const values: valuesEntry[] = namesAndCounts.map(([name, count]) => {
@@ -85,7 +85,7 @@ export class CCRMinter extends DefaultMinter {
                 values,
                 this.commissioningNewCred(credId).redeemer
             )
-            .attachScript(this.compiledContract);
+            .attachScript(this.compiledScript);
     }
 
     
@@ -109,7 +109,7 @@ export class CCRMinter extends DefaultMinter {
                 value,
                 this.mintingLIT(credId).redeemer
             )
-            .attachScript(this.compiledContract);
+            .attachScript(this.compiledScript);
     }
     
 }

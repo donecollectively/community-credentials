@@ -1,17 +1,32 @@
 {
-    "name": "w3 community certs",
+    "name": "w3-community-certs",
     "version": "0.1.0",
     "private": true,
     "scripts": {
         "dev": "next dev -p 3040",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "test": "vitest",
+        "test:debug": "vitest --inspect --threads false",
+        "testing": "vitest --inspect --threads false",
+        "test:ui": "vitest --ui",
+        "test:run": "vitest run"
     },
+    "type": "module",
+    "postcss": {
+        "plugins": {
+            "postcss-import": {},
+            "tailwindcss": {},
+            "postcss-focus-visible": {
+                "replaceWith": "[data-focus-visible-added]"
+            },
+            "autoprefixer": {}
+        }
+      },    
     "browserslist": "defaults, not ie <= 11",
     "dependencies": {
         "@docsearch/react": "^3.2.1",
-        "@donecollectively/stellar-contracts": "github:donecollectively/stellar-contracts#dev",
         "@headlessui/react": "^1.7.2",
         "@hyperionbt/helios": "^0.15.11",
         "@markdoc/markdoc": "0.1.7",
@@ -33,11 +48,14 @@
         "tailwindcss": "^3.2.1"
     },
     "devDependencies": {
+        "@donecollectively/stellar-contracts": "github:donecollectively/stellar-contracts#experimental",
         "@types/react": "18.2.22",
         "eslint": "8.26.0",
         "eslint-config-next": "13.0.2",
         "prettier": "^2.7.1",
         "prettier-plugin-tailwindcss": "^0.1.13",
-        "typescript": "5.2.2"
+        "rollup-plugin-string": "^3.0.0",
+        "typescript": "5.2.2",
+        "vitest": "^0.34.5"
     }
 }
