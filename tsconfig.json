@@ -20,8 +20,9 @@
       "import"
     ],
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "Node16",
+    "module": "nodenext",
+    "moduleResolution": "NodeNext",
+    "preserveSymlinks": false,
     "resolveJsonModule": true,
     // "isolatedModules": true,
     "jsx": "preserve",
@@ -29,15 +30,17 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@donecollectively/stellar-contracts": [
+        "node_modules/@donecollectively/stellar-contracts"
       ]
-    }
+    },
     //   "importHelpers": true,
     //   "types": ["node"],
     //   "allowSyntheticDefaultImports": true,
     //   "noImplicitAny": false,
     //   "rootDir": ".",
     //   "sourceMap": true
-    ,
     "isolatedModules": true
   },
   "include": [
