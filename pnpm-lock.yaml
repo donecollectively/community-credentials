@@ -4,7 +4,6 @@ specifiers:
   '@docsearch/react': ^3.2.1
   '@donecollectively/stellar-contracts': ../../stellar-contracts
   '@headlessui/react': ^1.7.2
-  '@hyperionbt/helios': ^0.15.11
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6
   '@sindresorhus/slugify': ^2.1.0
@@ -29,12 +28,12 @@ specifiers:
   rollup-plugin-string: ^3.0.0
   tailwindcss: ^3.2.1
   typescript: 5.2.2
+  vite: ^4.5.0
   vitest: ^0.34.5
 
 dependencies:
   '@docsearch/react': 3.5.1_cccfvuyjnmee77bwg4wjyn6zre
   '@headlessui/react': 1.7.15_biqbaboplfbrettd7655fr4n2y
-  '@hyperionbt/helios': 0.15.11
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6_sfilzu25rkwkmvqsscsbq2fr4e
   '@sindresorhus/slugify': 2.2.1
@@ -62,6 +61,7 @@ devDependencies:
   prettier-plugin-tailwindcss: 0.1.13_prettier@2.8.8
   rollup-plugin-string: 3.0.0
   typescript: 5.2.2
+  vite: 4.5.0
   vitest: 0.34.5
 
 packages:
@@ -485,10 +485,6 @@ packages:
   /@humanwhocodes/object-schema/1.2.1:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     dev: true
-
-  /@hyperionbt/helios/0.15.11:
-    resolution: {integrity: sha512-Dr48bPRTTsmrhlrtNFWg0HK6i59A2matsPrQimu3a6VhaAsXp1Sc3uYQGYyPJPa4eN72hxDC6QBCMnDOpqbBsA==}
-    dev: false
 
   /@jest/schemas/29.6.3:
     resolution: {integrity: sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==}
@@ -3135,7 +3131,7 @@ packages:
       mlly: 1.4.2
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 4.4.9_@types+node@20.7.1
+      vite: 4.5.0_@types+node@20.7.1
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -3147,8 +3143,43 @@ packages:
       - terser
     dev: true
 
-  /vite/4.4.9_@types+node@20.7.1:
-    resolution: {integrity: sha512-2mbUn2LlUmNASWwSCNSJ/EG2HuSRTnVNaydp6vMCm5VIqJsjMfbIWtbH2kDuwUVW5mMUKKZvGPX/rqeqVvv1XA==}
+  /vite/4.5.0:
+    resolution: {integrity: sha512-ulr8rNLA6rkyFAlVWw2q5YJ91v098AFQ2R0PRFwPzREXOUJQPtFUG0t+/ZikhaOCDqFoDhN6/v8Sq0o4araFAw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.18.20
+      postcss: 8.4.31
+      rollup: 3.29.4
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /vite/4.5.0_@types+node@20.7.1:
+    resolution: {integrity: sha512-ulr8rNLA6rkyFAlVWw2q5YJ91v098AFQ2R0PRFwPzREXOUJQPtFUG0t+/ZikhaOCDqFoDhN6/v8Sq0o4araFAw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -3235,7 +3266,7 @@ packages:
       strip-literal: 1.3.0
       tinybench: 2.5.1
       tinypool: 0.7.0
-      vite: 4.4.9_@types+node@20.7.1
+      vite: 4.5.0_@types+node@20.7.1
       vite-node: 0.34.5_@types+node@20.7.1
       why-is-node-running: 2.2.2
     transitivePeerDependencies:

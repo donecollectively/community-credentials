@@ -1,11 +1,12 @@
+'use client'
+
 import { NextPageContext } from "next"
-import Head from "next/head"
-import { useRouter } from "next/router"
+import head from "next/head.js";  const Head = head.default;
+import { useRouter } from "next/router.js"
 import { useState } from "react"
 import { createPortal } from "react-dom"
-import { Prose } from "@/components/Prose"
+import { Prose } from "@/components/Prose.jsx"
 import { useLiveQuery } from "dexie-react-hooks"
-import { Address } from "@hyperionbt/helios"
 
 // ViewCert.getInitialPXXrops = async (ctx) => {
 //     const { id } = ctx.query
@@ -24,6 +25,7 @@ export default function ViewCert(props) {
     if (!rendered) setTimeout(() => firstRender(true), 10)
     // const [posts, setPosts] = useState(null);
     // useEffect(() => {    fetchPosts().then(p => setPosts(p));  }, []);
+    console.log("--------------------------------------------------------------------------------- cert view render")
     const metaTable = (
         <Prose className="">
             <table className="mt-16 table-auto text-gray-400">

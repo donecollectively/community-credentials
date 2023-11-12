@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import head from "next/head.js";  const Head = head.default;
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 
 import { Layout } from '@/components/Layout'
@@ -50,7 +50,8 @@ function collectHeadings(nodes, slugify = slugifyWithCounter()) {
 }
 
 export default function App({ Component, pageProps }) {
-  let title = pageProps.markdoc?.frontmatter.title
+    let {notProse=false} = Component
+    let title = pageProps.markdoc?.frontmatter.title
 
   let pageTitle =
     pageProps.markdoc?.frontmatter.pageTitle ||
@@ -80,7 +81,7 @@ const GA_ID = "XXXX!!!customize";
         {description && <meta name="description" content={description} />}
 
       </Head>
-      <Layout title={title} tableOfContents={tableOfContents}>
+      <Layout {...{title, tableOfContents, notProse}}>
         <Component {...pageProps} />
       </Layout>
     </>

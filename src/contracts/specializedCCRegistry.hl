@@ -1,0 +1,99 @@
+module specializedCapo
+
+// exports a Datum and Redeemer.  
+//! the Datum and Redeemer of specializations
+//  MUST include the same enum variants as in this
+//  unspecialized version.  if you're specializing 
+//  ... and you get a Helios compiler error,
+// ... these are the first things you should check!
+//! Your specialization MAY include any 
+// ... additional functions, imports or methods
+
+import { 
+    RelativeDelegateLink
+} from CapoDelegateHelpers
+
+struct CredStruct {
+    credType: String
+    credName: String
+    credDesc: String
+    credDID: String
+    issuerName: String
+    expectations: []String
+    issuingGovInfo: String
+    props: Map[String]String
+}
+enum Datum {
+    CharterToken {
+        govAuthorityLink: RelativeDelegateLink
+        mintDelegateLink: RelativeDelegateLink
+    }
+    RegisteredCredential {
+        credAuthority: RelativeDelegateLink
+        cred: CredStruct
+    }
+
+    //! datum-validation only supports checks of absolute spendability, 
+    //  ... and can't check details of the Activity/Redeemer being used.
+    func validateSpend(self, ctx: ScriptContext) -> Bool {
+        true ||
+         ( self.serialize() /* never */ == ctx.serialize()  )
+    }   
+}
+
+enum Activity {
+    // standard redeemer types:
+    spendingDatum
+    updatingCharter    
+    usingAuthority
+
+    //custom redeemer types:
+    registeringCredential
+    updatingCredential
+    retiringCredential
+
+    // func allowRetiringCredential(_,_,_) -> Bool {
+       func allowRetiringCredential(self, datum: Datum, ctx: ScriptContext) -> Bool {
+            // rc -> if is severely outdated, burn the UUT and allow minUtxo recovery
+        true ||
+        ( self.serialize() != datum.serialize() ) ||
+        ( self.serialize() != ctx.serialize() )
+    }
+    // func allowUpdatingCredential(_,_,_) -> Bool {
+    func allowUpdatingCredential(self, datum: Datum, ctx: ScriptContext) -> Bool {
+            // rc + delegated approval -> rc with validation
+        // or rc + charter -> rc with validation
+        true ||
+        ( self.serialize() != datum.serialize() ) ||
+        ( self.serialize() != ctx.serialize() )
+    }
+
+    func allowActivity(self, datum: Datum, ctx: ScriptContext) -> Bool {
+        //! Note: an overridden Reedeemer def doesn't have to replicate the checks
+        // ... for the baseline enum variants; it's not called in those cases.
+        datum.switch{
+            RegisteredCredential{credAuthority, cred} => {
+                self.switch{
+                    updatingCredential => self.allowUpdatingCredential(datum, ctx),
+                    retiringCredential => self.allowRetiringCredential(datum, ctx),
+                    _ => error("unreachable code")
+                }
+               // not executed, but prevents the args from showing up as unused:
+                || ( credAuthority.serialize() != cred.serialize() )
+            },
+            _ => error("unhandled datum type")
+            // not executed, but prevents the args from showing up as unused:
+        } || ( ctx.tx.serialize() != datum.serialize() )
+    }
+}
+
+struct typeInfo {
+    credStruct: CredStruct
+    datum: Datum
+    redeemers: Activity
+}
+const types : typeInfo = typeInfo {
+    CredStruct::from_data(Data{}),
+    Datum::from_data(Data{}),
+    Activity::from_data(Data{})
+}

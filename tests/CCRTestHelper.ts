@@ -36,7 +36,7 @@ export class CCRTestHelper extends DefaultCapoTestHelper<CCRegistry> {
         const treasury = this.strella!
         const tcx: StellarTxnContext = new StellarTxnContext()
 
-        return treasury.txnAddAuthority(tcx)
+        return treasury.txnAddGovAuthority(tcx)
     }
 
     async updateRegistryDatum(

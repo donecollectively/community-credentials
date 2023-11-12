@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import clsx from 'clsx'
@@ -129,7 +129,7 @@ function useTableOfContents(tableOfContents) {
   return currentSection
 }
 
-export function Layout({ children, title, tableOfContents }) {
+export function Layout({ children, title, tableOfContents, notProse=false }) {
   let router = useRouter()
   let isHomePage = router.pathname === '/'
   let allLinks = navigation.flatMap((section) => section.links)
@@ -151,6 +151,7 @@ export function Layout({ children, title, tableOfContents }) {
     return section.children.findIndex(isActive) > -1
   }
 
+  const MaybeProse = notProse ? React.Fragment : Prose;
   return (
     <>
       <Header navigation={navigation} />
@@ -201,7 +202,7 @@ export function Layout({ children, title, tableOfContents }) {
                 )}
               </header>
             )}
-            <Prose>{children}</Prose>
+            <MaybeProse>{children}</MaybeProse>
           </article>
           <dl className="mt-12 flex border-t border-slate-200 pt-6 dark:border-slate-800">
             {previousPage && (
@@ -237,8 +238,7 @@ export function Layout({ children, title, tableOfContents }) {
           </dl>
         </div>}
         {!comingSoon && <div className="hidden xl:sticky xl:top-[4.5rem] xl:-mr-6 xl:block xl:h-[calc(100vh-4.5rem)] xl:flex-none xl:overflow-y-auto xl:py-16 xl:pr-6">
-            <div id="sidebar" className="w-56">
-
+            <div id="sidebar" className="w-56 lg-w-80">
             </div>
           <nav aria-labelledby="on-this-page-title" className="w-56">
             {tableOfContents.length > 0 && (

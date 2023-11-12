@@ -1,80 +1,359 @@
 import {
-    Activity,
-    RoleMap,
     SeedTxnParams,
-    StellarTxnContext,
-    datum,
-    txn,
     mkHeliosModule,
     DefaultCapo,
-    variantMap,
     hasReqts,
-} from "@donecollectively/stellar-contracts"
-
-import type {
-    isActivity,
+    defineRole,
+    StellarTxnContext,
+    Activity,
+    partialTxn,
+    Address,
+    datum,
+    AuthorityPolicy,
+    RelativeDelegateLink,
     stellarSubclass,
     strategyValidation,
+    helios,
+    txn,
+    dumpAny,
 } from "@donecollectively/stellar-contracts";
 
-import contract from "./CCRegistry.hl" assert {type: "text"};
-import { CCRMinter } from "./CCRMinter.js";
-import { RCPolicy } from "./RCPolicy.js";
-import { Address, Datum } from "@hyperionbt/helios"
+const { Value, TxOutput, Datum } = helios;
+import type {
+    InlineDatum,
+    isActivity,
+    TxInput,
+    UutName,
+} from "@donecollectively/stellar-contracts";
 
-export type CCRegDatumProps = {
-    governancePolicy: Address
-    govUUT: string,
-}
+//@ts-expect-error importing a file typescript isn't expected to understand
+import specializedCapo from "./specializedCCRegistry.hl"; // assert { type: 'text' };
 
-export class CCRegistry extends DefaultCapo<CCRMinter> {
-    contractSource() {
-        return mkHeliosModule(contract, "src/contracts/CCRegistry.hl")
+import { CCRMintDelegate } from "./CCRMintDelegate.js";
+
+export type RegisteredCredentialOnchain = {
+    credAuthority: RelativeDelegateLink<AuthorityPolicy>;
+    id?: string;
+    cred: RegisteredCredential;
+};
+
+export type RegisteredCredential = {
+    credType: string;
+    credName: string;
+    credSummary: string;
+    credIssuerDID: string;
+    issuerName: string;
+    credDesc: string;
+    expectations: string[];
+    issuingGovInfo: string;
+};
+
+export type RegisteredCredentialUpdate = {
+    // id: RegisteredCredentialOnchain['credAuthority']['uutName'];
+    cred: RegisteredCredential;
+    utxo?: TxInput;
+    original?: RegisteredCredentialOnchain;
+} & (
+    | {
+          original: RegisteredCredentialOnchain;
+      }
+    | {
+          utxo: TxInput;
+      }
+);
+
+export class CCRegistry extends DefaultCapo {
+    get specializedCapo() {
+        return mkHeliosModule(
+            specializedCapo,
+            "src/contracts/specializedCCRegistry.hl"
+        );
     }
-
-    get minterClass(): stellarSubclass<CCRMinter, SeedTxnParams> {
-        return CCRMinter
-    }
-    declare minter: CCRMinter
 
     static get defaultParams() {
-        return {}
+        return {};
     }
 
-    get roles(): RoleMap {
-        return {
-            noDefault: variantMap<RCPolicy>({}),
-            regCredPolicy: variantMap<RCPolicy>({
-                default: {
-                    delegateClass: RCPolicy,
-                    partialConfig: {},
-                    validateConfig(args): strategyValidation {
+    @Activity.redeemer
+    protected activityUpdatingCredential(): isActivity {
+        const { updatingCredential } = this.onChainActivitiesType;
+        const t = new updatingCredential();
 
-                        return undefined
-                    },
+        return { redeemer: t._toUplcData() };
+    }
+
+    @datum
+    mkDatumRegisteredCredential(d: RegisteredCredentialOnchain): InlineDatum {
+        //!!! todo: make it possible to type these datum helpers more strongly
+        //  ... at the interface to Helios
+        console.log("--> mkDatumCharter", d);
+        const { RegisteredCredential: hlRegisteredCredential } =
+            this.onChainDatumType;
+        const { CredStruct: hlCredStruct } = this.onChainTypes;
+        debugger;
+        const {
+            credType,
+            credName,
+            credDesc,
+            credIssuerDID,
+            issuerName,
+            expectations,
+            issuingGovInfo,
+        } = d.cred;
+
+        const credAuthority = this.mkOnchainDelegateLink(d.credAuthority);
+        debugger;
+        const credStruct = new hlCredStruct(
+            credType,
+            credName,
+            credDesc,
+            credIssuerDID,
+            issuerName,
+            expectations,
+            issuingGovInfo,
+            new Map()
+        );
+        const t = new hlRegisteredCredential(credAuthority, credStruct);
+        debugger;
+        return Datum.inline(t._toUplcData());
+    }
+
+    get delegateRoles() {
+        const { mintDelegate: pMD, ...inherited } = super.delegateRoles;
+
+        const { baseClass, uutPurpose, variants } = pMD;
+        return {
+            ...inherited,
+            credAuthority: defineRole(
+                "credListingAuthz",
+                AuthorityPolicy,
+                inherited.govAuthority.variants
+            ),
+            mintDelegate: defineRole(uutPurpose, baseClass, {
+                default: {
+                    delegateClass: CCRMintDelegate,
+                    // partialConfig: {},
+                    // validateConfig(args): strategyValidation {
+                    //     return undefined
+                    // },
                 },
             }),
-        }
+        };
     }
 
-    // @txn
-    // async mkTxnUpdateCharter(
-    //     args: Partial<CCRegDatumProps>,
-    //     tcx: StellarTxnContext = new StellarTxnContext()
-    // ): Promise<StellarTxnContext> {
-    //     console.log("minting named token")
-    //     return this.txnMustUseCharterUtxo(
-    //         tcx,
-    //         this.updatingCharter(args)
-    //     ).then(async (_sameTcx) => {
-    //         return this.minter!.txnMintingNamedToken(tcx, tokenName, count)
-    //     })
-    // }
+    /**
+     * Creates a new credential listing and sends the authority/bearer token to the user's wallet
+     * @remarks
+     *
+     * Any user can submit a credential for listing in the registry by submitting key
+     * information about their credential, its meaning, and the governance process used
+     * for people to receive the credential.
+     * @param cred - details of the listing
+     * @param iTcx - optional initial transaction context
+     * @public
+     **/
+    @txn
+    async mkTxnCreatingRegistryEntry<TCX extends StellarTxnContext<any>>(
+        cred: RegisteredCredential,
+        iTcx?: TCX
+    ) {
+        // to make a new cred entry, we must:
+        //  - make a UUT for the credential listing (in-contract datum)
+        //  - ... and a UUT for administrative authority on that credential
+        //  -    ^^ includes the mint-delegate for authorizing creation of the credential-listing
+        debugger;
+        const tcx = await this.mkTxnMintingUuts(
+            iTcx || new StellarTxnContext<any>(this.myActor),
+            ["regCred", "credListingAuthz"],
+            undefined,
+            {
+                regCredential: "regCred",
+                credAuthority: "credListingAuthz",
+            }
+        );
+
+        //  - create a delegate-link connecting the registry to the credAuth
+        const credAuthority = this.txnCreateConfiguredDelegate(
+            tcx,
+            "credAuthority",
+            {
+                strategyName: "address",
+                config: {
+                    addrHint: await this.wallet.usedAddresses,
+                },
+            }
+        );
+
+        const authz: UutName = tcx.state.uuts.credListingAuthz;
+        //  - send the credAuth UUT to the user
+        const tcx2 = await credAuthority.delegate.txnReceiveAuthorityToken(
+            tcx,
+            this.uutsValue(authz)
+        );
+
+        //  - combine the delegate-link with the `cred` to package it for on-chain storage
+        //  - send the cred-listing UUT to the contract, with the right on-chain datum
+        const tcx3 = this.txnReceiveRegistryEntry(tcx2, {
+            credAuthority,
+            id: tcx.state.uuts.regCred.name,
+            cred,
+        });
+        console.warn("after receiveReg", dumpAny(tcx3.tx));
+        debugger;
+        return tcx3 as TCX & typeof tcx2 & typeof tcx;
+    }
+
+    /**
+     * adds the indicated credential properties to the current transaction
+     * @remarks
+     *
+     * includes the Credential details in the datum of the output
+     * @param tcx: transaction context
+     * @param cred: properties of the new credential
+     * @param existingUtxo: unused existing utxo
+     * @public
+     **/
+    @partialTxn
+    txnReceiveRegistryEntry<TCX extends StellarTxnContext<any>>(
+        tcx: TCX,
+        cred: RegisteredCredentialOnchain,
+        existingUtxo?: TxInput
+    ) {
+        return tcx.addOutput(
+            new TxOutput(
+                this.address,
+                this.mkMinTv(this.mph, cred.id),
+                this.mkDatumRegisteredCredential(cred)
+            )
+        );
+    }
+    // Address.fromHash(cred.credAuthority.delegateValidatorHash),
+
+    /**
+     * Finds and returns the UTxO matching the given UUT identifier
+     * @remarks
+     *
+     * Throws an error if it is not found
+     * @param credId - the UUT identifier regCred-xxxxxxxxxx
+     * @public
+     **/
+    findRegistryUtxo(credId: string) {
+        return this.mustFindMyUtxo(
+            "registered cred",
+            this.mkTokenPredicate(this.mph, credId),
+            `not found in registry: credential with id ${credId}`
+        );
+    }
+
+    /**
+     * Reads the datum details for a RegisteredCredential datum
+     * @remarks
+     *
+     * Asynchronously reads the UTxO for the given id, unless provided in the second arg
+     *
+     * @param credId - the UUT identifier regCred-xxxxxxxxxx
+     * @param uutxo - optional utxo having that UUT
+     * @public
+     **/
+    async findRegistryEntry(credId: string);
+    async findRegistryEntry(utxo: TxInput);
+    async findRegistryEntry(idOrUtxo: string | TxInput) {
+        let id = idOrUtxo;
+        const e =
+            idOrUtxo instanceof helios.TxInput
+                ? idOrUtxo
+                : await this.findRegistryUtxo(idOrUtxo);
+
+        if (id instanceof helios.TxInput) {
+            const a = id.value.assets.getTokenNames(this.mph);
+            id = a
+                .map((x) => helios.bytesToText(x.bytes))
+                .find((x) => x.startsWith("regCred"));
+        }
+        const result = await this.readDatum<RegisteredCredentialOnchain>(
+            "RegisteredCredential",
+            e.origOutput.datum as InlineDatum
+        );
+        if (!result) return result;
+        result.id = id;
+        return result;
+    }
+
+    /**
+     * Instantiates and returns a delegate instance for a specific registered credential id
+     * @remarks
+     *
+     * Resolves the delegate-link by finding the underlying utxo with findRegistryCred,
+     * if that cred is not provided in the second arg
+     * @param cred - an existing credential datum already parsed from utxo
+     * @param credId - the UUT identifier regCred-xxxxxxxxxx
+     * @public
+     **/
+    async getCredEntryDelegate(
+        cred: RegisteredCredentialOnchain
+    ): Promise<AuthorityPolicy>;
+    async getCredEntryDelegate(credId: string): Promise<AuthorityPolicy>;
+    async getCredEntryDelegate(
+        credOrId: string | RegisteredCredentialOnchain
+    ): Promise<AuthorityPolicy> {
+        const cred: RegisteredCredentialOnchain =
+            "string" == typeof credOrId
+                ? await this.findRegistryEntry(credOrId)
+                : credOrId;
+
+        const delegate = await this.connectDelegateWithLink(
+            "govAuthority",
+            cred.credAuthority
+        );
+        return delegate;
+    }
+
+    /**
+     * Updates a credential entry's utxo with new details
+     * @remarks
+     *
+     * detailed remarks
+     * @param ‹pName› - descr
+     * @reqt updates all the details found in the `update`
+     * @reqt fails if the `credId` is not found
+     * @reqt fails if the authority UUT is not found in the user's wallet
+     * @public
+     **/
+    @txn
+    async mkTxnUpdatingCredEntry(
+        // cred: RegisteredCredentialOnchain,
+        update: RegisteredCredentialUpdate
+    ) {
+        const {
+            // id,
+            utxo: currentUtxo,
+            original,
+            cred: newCredState,
+        } = update;
+
+        const existing =
+            original || (await this.findRegistryEntry(currentUtxo));
+
+        const { credAuthority } = existing;
+        const authority = await this.getCredEntryDelegate(existing);
+        const tcx = await authority.txnGrantAuthority(
+            new StellarTxnContext<any>()
+        );
+        const tcx2 = tcx.addInput(
+            update.utxo,
+            this.activityUpdatingCredential()
+        );
+        return this.txnReceiveRegistryEntry(tcx2, {
+            credAuthority,
+            cred: newCredState,
+        });
+    }
 
     requirements() {
         return hasReqts({
             "people can post credentials to be listed in the creds Registry": {
-                purpose: "testnet: create a project-based learning zone for credentials and a useful creds registry",
+                purpose:
+                    "testnet: create a project-based learning zone for credentials and a useful creds registry",
                 details: [
                     "People can post credentials into the registry ",
                     "  ... to share information about the credentials they have ",
@@ -95,32 +374,34 @@ export class CCRegistry extends DefaultCapo<CCRMinter> {
                     "the registry's trustee group can govern listed credentials",
                 ],
             },
-            "allows anyone to post information about a credential, for listing in the registry": {
-                purpose: "Enables openness",
-                details: [
-                    "People are expected to use a web UI for filling out details.",
-                    "The UI code should mkTxnCreatingRegisteredCredential() with the details.",
-                    "The Create transaction makes an identifiable UTxO in the contract for the listing, ",
-                    "  ... and sends an NFT-like token to the user's wallet for positive linkage with the listing.",
-                ],
-                mech: [
-                    "The person who posts the credential is the default trustee for that credential's policy-delegate",
-                    "Creates a RegisteredCredential datum in the contract, with a rcred-xxxxx UUT",
-                ],
-                requires: [
-                    "creates validated credential listings",
-                    "creates a policy-delegate to govern each listing, in a separate contract",
-                    "issues a Linked Interaction Token for the creator's wallet"
-                ],
-            },
+            "allows anyone to post information about a credential, for listing in the registry":
+                {
+                    purpose: "Enables openness",
+                    details: [
+                        "People are expected to use a web UI for filling out details.",
+                        "The UI code should mkTxnCreatingRegisteredCredential() with the details.",
+                        "The Create transaction makes an identifiable UTxO in the contract for the listing, ",
+                        "  ... and sends an NFT-like token to the user's wallet for positive linkage with the listing.",
+                    ],
+                    mech: [
+                        "The person who posts the credential is the default trustee for that credential's policy-delegate",
+                        "Creates a RegisteredCredential datum in the contract, with a rcred-xxxxx UUT",
+                    ],
+                    requires: [
+                        "creates validated credential listings",
+                        "creates a policy-delegate to govern each listing, in a separate contract",
+                        "issues a Linked Interaction Token for the creator's wallet",
+                    ],
+                },
 
             "creates validated credential listings": {
-                purpose: "Provides baseline assurance of having key details for a listing",
+                purpose:
+                    "Provides baseline assurance of having key details for a listing",
                 details: [
                     "Required fields must be filled, for a listing to be valid",
                     "Other validations may also be enforced",
                     "Validation problems in mkTxnCreatingRegisteredCredential() should be made visible to the UI layer",
-                    "It should be possible for people to experiment with credential listings even if they do not yet have an issuing service or dID"
+                    "It should be possible for people to experiment with credential listings even if they do not yet have an issuing service or dID",
                 ],
                 mech: [
                     "type, name, issuer name, and description are required as essential information about the credential",
@@ -131,13 +412,14 @@ export class CCRegistry extends DefaultCapo<CCRMinter> {
             },
 
             "issues a Linked Interaction Token for the creator's wallet": {
-                purpose: "to enable a person to easily connect in the future with their listings",
+                purpose:
+                    "to enable a person to easily connect in the future with their listings",
                 details: [
                     "Each created listing also issues an NFT-like token, sent to the creator's wallet",
                     "The minted metadata can contain or reference HTML/Javascript to show in-wallet details",
                     "That token can be re-minted later, to update its metadata as needed",
                     "Additional mints of the same token can be issued to other trustees on that listing,",
-                    "  ... or for interested people to use like a bookmark for that listing"
+                    "  ... or for interested people to use like a bookmark for that listing",
                 ],
                 mech: [
                     "uses token name link:rcred-xxxxx, where xxxxx matches the rcred-  UUT identifier",
@@ -147,30 +429,30 @@ export class CCRegistry extends DefaultCapo<CCRMinter> {
             },
 
             "enforces an automatic expiration for every listing": {
-                purpose: "provides a dead-man-switch convention to ensure freshness of displayed listings",
+                purpose:
+                    "provides a dead-man-switch convention to ensure freshness of displayed listings",
                 details: [
                     "Issuing parties must freshen their credential listings periodically",
                     "  ... to guard against obsolete registry listings.",
-                    "At that time, they may choose to freshen certain details of their listings also."
+                    "At that time, they may choose to freshen certain details of their listings also.",
                 ],
                 mech: [
                     "expiration is 45 days, and may not be modified by the creator",
-                    "queries for active listings SHOULD filter out past-expiry records"
+                    "queries for active listings SHOULD filter out past-expiry records",
                 ],
-                requires: [
-                    "a listing can be freshened by its policy-delegate"
-                ],
+                requires: ["a listing can be freshened by its policy-delegate"],
             },
 
             "a listing can be revoked": {
-                purpose: "for proactive assurance of freshness and quality of the listing and the registry overall",
+                purpose:
+                    "for proactive assurance of freshness and quality of the listing and the registry overall",
                 details: [
                     "The registry's trustees and a listing's policy-delegate can revoke a listing.",
-                    "A revoked listing MUST NOT be considered an active item in the registry."
+                    "A revoked listing MUST NOT be considered an active item in the registry.",
                 ],
                 mech: [
                     "A revocation is allowed by authority of the policy-delegate's UUT",
-                    "A revocation is allowed by authority of the registry's trustees"
+                    "A revocation is allowed by authority of the registry's trustees",
                 ],
                 requires: [
                     "the registry's trustee group can govern listed credentials",
@@ -178,43 +460,40 @@ export class CCRegistry extends DefaultCapo<CCRMinter> {
                 ],
             },
 
-            "creates a policy-delegate to govern each listing, in a separate contract": {
-                purpose: "to keep the main contract simple and allow richness of delegates",
-                details: [
-                    "The main contract allows updates to listings on delegated authority of a UUT",
-                    "That UUT is assigned to a known contract implementing an authorization policy",
-                    "Other contracts could be used as delegates.",
-                    "The delegate contract can have unlimited policy richness without affecting the main contract.",
-                    "The delegate contract is self-sovereign with regard to its own authority",
-                    "Note that the main contract retains governance authority, guarding for data quality and against abuse.",
-                    "The Stellar contract class records the delegate contract address, ",
-                    "  ... creating positive linkage to the on-chain delegate, ",
-                    "  ... and allowing off-chain resolution of txn-building code for it"
-                ],
-                mech: [
-                    "authority is granted IFF the RegCredUUT is spendable",
-                    "the contract address of the delegate is stored in the listing",
-                ],
-                requires: [],
-            },
+            "creates a policy-delegate to govern each listing, in a separate contract":
+                {
+                    purpose:
+                        "to keep the main contract simple and allow richness of delegates",
+                    details: [
+                        "The main contract allows updates to listings on delegated authority of a UUT",
+                        "That UUT is assigned to a known contract implementing an authorization policy",
+                        "Other contracts could be used as delegates.",
+                        "The delegate contract can have unlimited policy richness without affecting the main contract.",
+                        "The delegate contract is self-sovereign with regard to its own authority",
+                        "Note that the main contract retains governance authority, guarding for data quality and against abuse.",
+                        "The Stellar contract class records the delegate contract address, ",
+                        "  ... creating positive linkage to the on-chain delegate, ",
+                        "  ... and allowing off-chain resolution of txn-building code for it",
+                    ],
+                    mech: [
+                        "authority is granted IFF the RegCredUUT is spendable",
+                        "the contract address of the delegate is stored in the listing",
+                    ],
+                    requires: [],
+                },
 
             "a listing can be freshened by its policy-delegate": {
-                purpose: "allowing update and preventing the expiration of a listing",
-                details: [
-
-                ],
+                purpose:
+                    "allowing update and preventing the expiration of a listing",
+                details: [],
                 mech: [],
                 requires: [],
             },
 
             "the registry's trustee group can govern listed credentials": {
                 purpose: "to guard for quality and against abuse",
-                details: [
-                    "TODO - use Capo multisig strategy"
-                ],
-                mech: [
-
-                ],
+                details: ["TODO - use Capo multisig strategy"],
+                mech: [],
                 requires: [],
             },
         });

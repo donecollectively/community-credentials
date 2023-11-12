@@ -16,24 +16,24 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "incremental": true,
-    "customConditions": [
-      "import"
-    ],
+    // "customConditions": [
+    //   "import"
+    // ],
     "esModuleInterop": true,
     "module": "nodenext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "nodenext",
     "preserveSymlinks": false,
     "resolveJsonModule": true,
-    // "isolatedModules": true,
+    "resolvePackageJsonExports":true,
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
-      ],
-      "@donecollectively/stellar-contracts": [
-        "node_modules/@donecollectively/stellar-contracts"
+        "src/*"        
       ]
+      //   "@donecollectively/stellar-contracts": [
+      //     "node_modules/@donecollectively/stellar-contracts"
+      //   ]
     },
     //   "importHelpers": true,
     //   "types": ["node"],
@@ -45,6 +45,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "src/contracts/CCRegistry.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "tests/**/*.ts"

@@ -29,7 +29,6 @@
     "dependencies": {
         "@docsearch/react": "^3.2.1",
         "@headlessui/react": "^1.7.2",
-        "@hyperionbt/helios": "^0.15.11",
         "@markdoc/markdoc": "0.1.7",
         "@markdoc/next.js": "0.1.6",
         "@sindresorhus/slugify": "^2.1.0",
@@ -57,6 +56,7 @@
         "prettier-plugin-tailwindcss": "^0.1.13",
         "rollup-plugin-string": "^3.0.0",
         "typescript": "5.2.2",
+        "vite": "^4.5.0",
         "vitest": "^0.34.5"
     }
 }
