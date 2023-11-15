@@ -8,7 +8,7 @@ const styles = {
         title: "",
         body: "",
     },
-  note: {
+  info: {
     container:
       'bg-sky-50 dark:bg-slate-800/60 dark:ring-1 dark:ring-slate-300/10',
     title: 'text-sky-900 dark:text-sky-400',
@@ -23,7 +23,7 @@ const styles = {
 }
 
 const icons = {
-  note: (props) => <Icon icon="lightbulb" {...props} />,
+  info: (props) => <Icon icon="lightbulb" {...props} />,
   warning: (props) => <Icon icon="warning" color="amber" {...props} />,
   customIcon: (props) => {
     return <svg fill="#ffffff" 
@@ -43,7 +43,7 @@ const icons = {
   }
 }
 
-export function Callout({ type = 'note', iconSize:fontSize, icon, title, children }) {
+export function Callout({ type = 'info', iconSize:fontSize, icon, title, children }) {
   let IconComponent = icons[type]
 
   let iconElement = icon || <IconComponent className="h-8 w-8 flex-none" />
