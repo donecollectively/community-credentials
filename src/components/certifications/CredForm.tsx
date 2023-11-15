@@ -9,8 +9,8 @@ import {
     CCRegistry,
     RegisteredCredential,
     RegisteredCredentialOnchain,
-} from "../contracts/CCRegistry.js";
-import { Prose } from "./Prose.jsx";
+} from "../../contracts/CCRegistry.js";
+import { Prose } from "../Prose.jsx";
 import head from "next/head.js";  const Head = head.default;
 
 import { Wallet, dumpAny } from "@donecollectively/stellar-contracts";

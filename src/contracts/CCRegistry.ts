@@ -249,33 +249,28 @@ export class CCRegistry extends DefaultCapo {
      * Reads the datum details for a RegisteredCredential datum
      * @remarks
      *
-     * Asynchronously reads the UTxO for the given id, unless provided in the second arg
+     * Asynchronously reads the UTxO for the given id and returns its underlying datum via {@link CCRegistry.readRegistryEntry}
      *
      * @param credId - the UUT identifier regCred-xxxxxxxxxx
-     * @param uutxo - optional utxo having that UUT
      * @public
      **/
-    async findRegistryEntry(credId: string);
-    async findRegistryEntry(utxo: TxInput);
-    async findRegistryEntry(idOrUtxo: string | TxInput) {
-        let id = idOrUtxo;
-        const e =
-            idOrUtxo instanceof helios.TxInput
-                ? idOrUtxo
-                : await this.findRegistryUtxo(idOrUtxo);
+    async findRegistryEntry(credId: string) {
+        const utxo = await this.findRegistryUtxo(credId);
+        return this.readRegistryEntry(utxo);
+    }
 
-        if (id instanceof helios.TxInput) {
-            const a = id.value.assets.getTokenNames(this.mph);
-            id = a
+    async readRegistryEntry(utxo: TxInput) {
+        const a = utxo.value.assets.getTokenNames(this.mph);
+        const credId = a
                 .map((x) => helios.bytesToText(x.bytes))
                 .find((x) => x.startsWith("regCred"));
-        }
+        
         const result = await this.readDatum<RegisteredCredentialOnchain>(
             "RegisteredCredential",
-            e.origOutput.datum as InlineDatum
+            utxo.origOutput.datum as InlineDatum
         );
         if (!result) return result;
-        result.id = id;
+        result.id = credId;
         return result;
     }
 
@@ -332,7 +327,7 @@ export class CCRegistry extends DefaultCapo {
         } = update;
 
         const existing =
-            original || (await this.findRegistryEntry(currentUtxo));
+            original || (await this.readRegistryEntry(currentUtxo));
 
         const { credAuthority } = existing;
         const authority = await this.getCredEntryDelegate(existing);

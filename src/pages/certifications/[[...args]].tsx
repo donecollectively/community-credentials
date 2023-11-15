@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 const ccrConfig = {
     mph: {
@@ -15,13 +15,14 @@ const ccrConfig = {
 };
 
 import { NextPageContext } from "next";
-import { withRouter } from "next/router.js"
-import head from "next/head.js";  const Head = head.default;
-import link from "next/link.js"; const  Link = link.default;
+import { NextRouter, withRouter } from "next/router.js";
+import head from "next/head.js";
+const Head = head.default;
+import link from "next/link.js";
+const Link = link.default;
 
 import { useRouter } from "next/router.js";
-import React, { use, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import React, { MouseEventHandler, use, useEffect, useState } from "react";
 import { Prose } from "@/components/Prose.jsx";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -37,7 +38,12 @@ import {
     CCRegistry,
     RegisteredCredentialOnchain,
 } from "../../contracts/CCRegistry.js";
-import { CredForm } from "../../components/CredForm.js";
+import { CredForm } from "../../components/certifications/CredForm.jsx";
+import { CredsList } from "../../components/certifications/CredsList.jsx";
+import { CredView } from "../../components/certifications/CredView.jsx";
+import { Button } from "../../components/Button.jsx";
+import { ClientSideOnly } from "../../components/ClientSideOnly.jsx";
+import { inPortal } from "../../inPortal.jsx";
 
 // Helios types
 const { BlockfrostV0, Cip30Wallet, TxChain } = helios;
@@ -46,7 +52,7 @@ type hTxChain = typeof TxChain.prototype;
 type hWallet = typeof Cip30Wallet.prototype;
 
 type paramsType = {
-    router: any
+    router: NextRouter;
 };
 type NetParams = Awaited<ReturnType<hBlockfrost["getParameters"]>>;
 
@@ -58,12 +64,12 @@ type stateType = {
     progressBar?: true | string;
     selectedWallet?: string;
     wallet?: hWallet;
+    connectingWallet?: boolean;
     showDetail?: string;
     tcx?: StellarTxnContext<any>;
-    filteredCreds?: RegisteredCredentialOnchain[];
 
-    editing?: RegisteredCredentialOnchain;
-    creating?: true;
+    allCreds?: RegisteredCredentialOnchain[];
+    credsIndex?: { [k: string]: RegisteredCredentialOnchain };
 
     nextAction?: keyof typeof actionLabels;
     moreInstructions?: string;
@@ -96,8 +102,7 @@ let mountCount = 0;
 
 //   ___   ?.  add actor collateral to TCX, on-demand and/or during addScript (when??)
 
-
-class Certs extends React.Component<paramsType, stateType> {
+class CertsPage extends React.Component<paramsType, stateType> {
     bf: hBlockfrost;
     bfFast: hTxChain;
     static notProse = true;
@@ -106,8 +111,9 @@ class Certs extends React.Component<paramsType, stateType> {
         super(props);
         this.i = mountCount += 1;
         this.createCredential = this.createCredential.bind(this);
-        this.fetchFilteredEntries = this.fetchFilteredEntries.bind(this);
+        this.fetchRegistryEntries = this.fetchRegistryEntries.bind(this);
         this.closeForm = this.closeForm.bind(this);
+        this.connectWallet = this.connectWallet.bind(this);
         this.state = { status: "connecting to blockfrost" };
 
         this.bf = new BlockfrostV0(
@@ -117,36 +123,30 @@ class Certs extends React.Component<paramsType, stateType> {
         this.bfFast = new TxChain(this.bf);
     }
 
+    get router() {
+        return this.props.router;
+    }
+
     async createCredential() {
         const { wallet } = this.state;
         if (!wallet) {
             await this.updateState("connecting wallet", { progressBar: true });
             await this.connectWallet(false);
         }
-        return this.updateState(
-            "",
-            {
-                creating: true,
-            },
-            "//triggering creation screen"
-        );
+        debugger;
+        await this.updateState("", {}, "//triggering creation screen");
+        this.router.push(`/certifications/create`, "", { shallow: true });
+        // window.history.pushState("", "", "/certifications/create")
     }
 
-    editCredential(cred: RegisteredCredentialOnchain) {
-        this.updateState("", {
-            editing: cred,
-        });
+    editCredential(id: string) {
+        this.updateState("", {}, "//edit credential via router");
+        this.router.push(`/certifications/${id}/edit`);
     }
 
     closeForm() {
-        this.updateState(
-            undefined,
-            {
-                editing: undefined,
-                creating: undefined,
-            },
-            "//closing form"
-        );
+        this.updateState(undefined, {}, "//closing form");
+        this.router.back();
     }
 
     saved(isNew: boolean) {
@@ -159,15 +159,17 @@ class Certs extends React.Component<paramsType, stateType> {
         );
     }
 
+    refreshCreds() {
+        throw new Error(`TODO`);
+    }
+
     render() {
-        const {
+        let {
             tcx,
             credsRegistry,
-            filteredCreds,
-            creating,
+            allCreds,
             wallet,
             progressBar,
-            editing,
             status,
             showDetail,
             error,
@@ -177,19 +179,18 @@ class Certs extends React.Component<paramsType, stateType> {
         } = this.state;
 
         // console.warn(`-------------------------- RENDER ---------------------------\n ---> ${status}`);
-        const {router} = this.props
-        debugger
+        const { router } = this.props;
+        const [arg1, arg2] = router.query.args || [];
 
         let results;
         if (error) {
             results = <div>Fix the problem before continuing.</div>;
         }
-        if (!filteredCreds) {
-            results = <Progress key={status}>starting</Progress>;
-        } else {
-            results = this.renderResultsTable(filteredCreds);
-        }
-        if (creating) {
+        debugger;
+        if (!allCreds) {
+            results = <Progress key={status}>loading</Progress>;
+        } else if ("create" == arg1) {
+            debugger;
             return (
                 <CredForm
                     {...{ credsRegistry, wallet }}
@@ -198,9 +199,9 @@ class Certs extends React.Component<paramsType, stateType> {
                     onClose={this.closeForm}
                 />
             );
-        }
-
-        if (editing)
+        } else if ("edit" == arg2) {
+            const id = arg1;
+            const editing = this.state.credsIndex[id];
             return (
                 <CredForm
                     {...{ credsRegistry, wallet }}
@@ -209,6 +210,25 @@ class Certs extends React.Component<paramsType, stateType> {
                     onClose={this.closeForm}
                 />
             );
+        } else if (arg1) {
+            const credId = arg1;
+            status = "";
+            const cred = this.state.credsIndex[credId];
+            results = <CredView cred={cred} />;
+        } else {
+            results = (
+                <CredsList
+                    {...{
+                        allCreds,
+                        createCredential: this.createCredential,
+                        credsRegistry,
+                        credsStatus: status,
+                        editCredId: this.editCredential,
+                        // refreshCreds
+                    }}
+                />
+            );
+        }
 
         const doNextAction = !!nextAction && (
             <button
@@ -234,6 +254,7 @@ class Certs extends React.Component<paramsType, stateType> {
             </>
         ) : null;
 
+        const walletInfo = inPortal("topRight", this.renderWalletInfo());
         const showProgressBar = !!progressBar;
         const progressLabel = "string" == typeof progressBar ? progressBar : "";
         const renderedStatus =
@@ -288,6 +309,7 @@ class Certs extends React.Component<paramsType, stateType> {
                     <title>Credentials Registry</title>
                 </Head>
                 {renderedStatus}
+                {walletInfo}
                 {detail}
                 {results}
                 {this.txnDump()}
@@ -306,6 +328,34 @@ class Certs extends React.Component<paramsType, stateType> {
         const thisAction = actions[action];
         thisAction.call(this);
     }
+
+    renderWalletInfo() {
+        const { wallet, connectingWallet } = this.state;
+
+        if (wallet) {
+            return (
+                <div>
+                    connected to {wallet.isMainnet() ? "mainnet" : "testnet"}
+                </div>
+            );
+        } else {
+            return (
+                <div>
+                    <Button variant="secondary" className="-mt-3" onClick={this.onConnectButton}>
+                        Connect Wallet
+                    </Button>
+                </div>
+            );
+        }
+    }
+
+    onConnectButton: MouseEventHandler<HTMLButtonElement> = async (event) => {
+        await this.updateState("connecting to Cardano wallet", {
+            connectingWallet: true,
+        });
+        await this.connectWallet();
+        await this.updateState("", { connectingWallet: false });
+    };
 
     txnDump() {
         const { tcx } = this.state;
@@ -328,74 +378,6 @@ class Certs extends React.Component<paramsType, stateType> {
                 </pre>
             );
         }
-    }
-
-    renderResultsTable(filteredCreds: RegisteredCredentialOnchain[]) {
-        return (
-            <Prose className="">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Type</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Issuer</th>
-                            <th scope="col">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredCreds.map(
-                            ({
-                                credAuthority: { uutName: id },
-                                ...cred
-                            }: RegisteredCredentialOnchain) => (
-                                <tr>
-                                    <td>{cred.cred.credType}</td>
-                                    <td>
-                                        <Link href={`/certifications/${cred.id}/view`}>
-                                            {cred.cred.credName}
-                                        </Link>
-                                    </td>
-                                    <td>{cred.cred.issuerName}</td>
-                                    <td>{cred.cred.credDesc}</td>
-                                </tr>
-                            )
-                        )}
-                        {!filteredCreds.length && (
-                            <tr>
-                                <td colSpan={4} style={{ textAlign: "center" }}>
-                                    No credentials are registered yet
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colSpan={2}>
-                                <button
-                                    className="btn border rounded float-right"
-                                    style={{
-                                        padding: "0.75em",
-                                        marginLeft: "0.5em",
-                                        // marginTop: '-0.75em',
-                                        border: "1px solid #162ed5",
-                                        borderRadius: "0.5em",
-                                        backgroundColor: "#142281",
-                                    }}
-                                    onClick={this.createCredential}
-                                >
-                                    List a Credential
-                                </button>
-                            </td>
-                            <td colSpan={2} style={{ textAlign: "right" }}>
-                                {(filteredCreds.length || "") && (
-                                    <>{filteredCreds.length} credentials</>
-                                )}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </Prose>
-        );
     }
 
     //  ---- Component setup sequence starts here
@@ -511,7 +493,7 @@ class Certs extends React.Component<paramsType, stateType> {
                 },
                 "//searching or freshening search after wallet connection"
             );
-            this.fetchFilteredEntries();
+            this.fetchRegistryEntries();
         } catch (error) {
             this.reportError(error, "checking registry configuration: ", {
                 nextAction: "initializeRegistry",
@@ -603,28 +585,26 @@ class Certs extends React.Component<paramsType, stateType> {
     }
 
     //  -- step 4: Read registry entries from chain
-    async fetchFilteredEntries() {
+    async fetchRegistryEntries() {
         const { credsRegistry } = this.state;
 
         const found = await this.bf.getUtxos(credsRegistry.address);
         const { mph } = credsRegistry;
 
-        const filteredCreds: RegisteredCredentialOnchain[] = [];
+        const allCreds: RegisteredCredentialOnchain[] = [];
+        const credsIndex = {};
         const waiting: Promise<any>[] = [];
         for (const utxo of found) {
             waiting.push(
-                credsRegistry.findRegistryEntry(utxo).then((cred) => {
+                credsRegistry.readRegistryEntry(utxo).then((cred) => {
                     if (!cred) return;
-                    filteredCreds.push(cred);
+                    allCreds.push(cred);
+                    credsIndex[cred.id] = cred;
                 })
             );
         }
         await Promise.all(waiting);
-        const status = filteredCreds.length
-            ? `found ${filteredCreds.length} credentials`
-            : "";
-        debugger;
-        this.updateState(status, { filteredCreds });
+        this.updateState("", { allCreds, credsIndex });
     }
 
     /**
@@ -693,4 +673,4 @@ const Progress: React.FC<any> = ({ children }) => {
     );
 };
 
-export default withRouter(Certs)
+export default withRouter(CertsPage);
