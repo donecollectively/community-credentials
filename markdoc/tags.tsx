@@ -1,6 +1,6 @@
-import { Callout } from '@/components/Callout'
-import { QuickLink, QuickLinks } from '@/components/QuickLinks'
-import Link from 'next/link'
+import { Callout } from '@/components/Callout.jsx'
+import { QuickLink, QuickLinks } from '@/components/QuickLinks.jsx'
+import link from 'next/link.js'; const Link = link.default
 
 const tags = {
     br: {
@@ -13,8 +13,8 @@ const tags = {
         iconSize: { type: String },
         type: {
         type: String,
-        default: 'note',
-        matches: ['note', 'warning'],
+        default: 'info',
+        matches: ['info', 'warning'],
         errorLevel: 'critical',
       },
     },
