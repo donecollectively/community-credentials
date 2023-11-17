@@ -321,6 +321,8 @@ export class CredForm extends React.Component<propsType, stateType> {
                                                         ? "Create"
                                                         : "Save Changes"}
                                                 </button>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                See preview below
                                             </>
                                         )}
                                     </td>
@@ -350,12 +352,12 @@ export class CredForm extends React.Component<propsType, stateType> {
                         </table>
                     </form>
                     {modified && <>
-                        <br/>
-                        <h3>Preview</h3>
+                        <h3 id="preview" className="mt-0 mb-2 text-slate-700">Preview</h3>
+                        <hr className="not-prose mb-2" />
                         <CredView {...{
-                            cred:{...cred, cred: rec},
+                            cred:{...cred, cred: rec},                            
                              credsRegistry
-                        }} />
+                        }} preview />
                     </>}
                 </Prose>
             </div>
@@ -434,14 +436,25 @@ export class CredForm extends React.Component<propsType, stateType> {
         } = this.state;
 
         const f = this.form.current;
-        const fd = new FormData(f);
+        const updatedCred = this.capture(f)
+        if (updatedCred.expectations.at(-1)) updatedCred.expectations.push("");
 
-        if (fd.getAll("expectations").at(-1)) expectations.push("");
         this.setState({
+            current: updatedCred,
             modified: true,
             gen: 1 + gen,
         });
     };
+    capture(form) {
+        const formData = new FormData(form);
+        const updatedCred: RegisteredCredential = Object.fromEntries(
+            formData.entries()
+        ) as unknown as RegisteredCredential;
+        const exp = formData.getAll("expectations") as string[];
+
+        updatedCred.expectations = exp;
+        return updatedCred
+    }
 
     async save(e: React.SyntheticEvent) {
         const { current: rec } = this.state;
@@ -450,13 +463,9 @@ export class CredForm extends React.Component<propsType, stateType> {
         e.stopPropagation();
 
         const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const updatedCred: RegisteredCredential = Object.fromEntries(
-            formData.entries()
-        ) as unknown as RegisteredCredential;
-        const exp = formData.getAll("expectations") as string[];
-        while (!exp.at(-1)) exp.pop();
-        updatedCred.expectations = exp;
+        const updatedCred = this.capture(form)
+
+        while (!updatedCred.expectations.at(-1)) updatedCred.expectations.pop();
 
         try {
             const txnDescription = `${create ? "creation" : "update"} txn`

@@ -33,6 +33,7 @@ type hWallet = typeof Cip30Wallet.prototype;
 type propsType = {
     cred: RegisteredCredentialForUpdate;
     wallet?: hWallet;
+    preview? : true
 } & credRegistryProps
 
 type stateType = {
@@ -51,6 +52,7 @@ export class CredView extends React.Component<propsType, stateType> {
         const {
             cred: { cred },
             wallet,
+            preview,
             credsRegistry,
         } = this.props;
         const metaTable = (
@@ -98,7 +100,7 @@ export class CredView extends React.Component<propsType, stateType> {
             </Prose>
         );
 
-        let sidebarMetaTable = (
+        let sidebarMetaTable = preview ? metaTable : (
             <ClientSideOnly>
                 {inPortal(
                     "sidebar",
