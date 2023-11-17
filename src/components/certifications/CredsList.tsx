@@ -1,11 +1,11 @@
 import React from "react";
-import { CCRegistry, RegisteredCredentialOnchain } from "../../contracts/CCRegistry.js";
+import { CCRegistry, RegisteredCredentialForUpdate, RegisteredCredentialOnchain } from "../../contracts/CCRegistry.js";
 import { Prose } from "../Prose.jsx";
 import link from "next/link.js"; const Link = link.default;
 
 type paramsType = {
     credsRegistry: CCRegistry;    
-    allCreds: RegisteredCredentialOnchain[];
+    allCreds: RegisteredCredentialForUpdate[];
     // refreshCreds: Function;
     credsStatus: string;
     editCredId: Function;
@@ -24,7 +24,7 @@ export class CredsList extends React.Component<paramsType, stateType> {
         return this.renderResultsTable(allCreds);
     }
 
-    renderResultsTable(filteredCreds: RegisteredCredentialOnchain[]) {
+    renderResultsTable(filteredCreds: RegisteredCredentialForUpdate[]) {
         const {
             createCredential
         } = this.props
@@ -36,14 +36,13 @@ export class CredsList extends React.Component<paramsType, stateType> {
                             <th scope="col">Type</th>
                             <th scope="col">Name</th>
                             <th scope="col">Issuer</th>
-                            <th scope="col">Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredCreds.map(
                             ({
                                 id, cred
-                            }: RegisteredCredentialOnchain) => (
+                            }) => (
                                 <tr key={`table-${id}`}>
                                     <td>{cred.credType}</td>
                                     <td>
@@ -52,7 +51,6 @@ export class CredsList extends React.Component<paramsType, stateType> {
                                         </Link>
                                     </td>
                                     <td>{cred.issuerName}</td>
-                                    <td>{cred.credSummary}</td>
                                 </tr>
                             )
                         )}
@@ -93,6 +91,7 @@ export class CredsList extends React.Component<paramsType, stateType> {
             </Prose>
         );
     }
+
     create = () => {
         debugger
         this.props.createCredential()

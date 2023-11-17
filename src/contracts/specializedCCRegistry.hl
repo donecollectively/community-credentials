@@ -15,12 +15,25 @@ import {
 
 struct CredStruct {
     credType: String
+                // "person", 
+                // "skill", 
+                // "experience", 
+                // "training cert",
+                // "aptitude", 
+                // "other"
     credName: String
     credDesc: String
     credDID: String
     issuerName: String
     expectations: []String
     issuingGovInfo: String
+    // expiryTime: Int
+    // regSpace: String
+                //  "Cardano on-chain"
+    // issuancePlatform
+                // "Atala Prism"
+                // "Other"
+    // issuanceUrl
     props: Map[String]String
 }
 enum Datum {

@@ -33,7 +33,6 @@ import { CCRMintDelegate } from "./CCRMintDelegate.js";
 
 export type RegisteredCredentialOnchain = {
     credAuthority: RelativeDelegateLink<AuthorityPolicy>;
-    id?: string;
     cred: RegisteredCredential;
 };
 
@@ -46,21 +45,25 @@ export type RegisteredCredential = {
     credDesc: string;
     expectations: string[];
     issuingGovInfo: string;
+    issuancePlatform? : string;
+    issuanceUrl? : string;
 };
 
-export type RegisteredCredentialUpdate = {
-    // id: RegisteredCredentialOnchain['credAuthority']['uutName'];
-    cred: RegisteredCredential;
-    utxo?: TxInput;
-    original?: RegisteredCredentialOnchain;
-} & (
-    | {
-          original: RegisteredCredentialOnchain;
-      }
-    | {
-          utxo: TxInput;
-      }
-);
+type credId = RegisteredCredentialOnchain["credAuthority"]["uutName"];
+export type RegisteredCredentialCreate = RegisteredCredentialOnchain & {
+    id: credId;
+};
+
+export type RegisteredCredentialForUpdate = RegisteredCredentialOnchain & {
+    id: credId;
+    utxo: TxInput;
+    updated?: RegisteredCredential;
+};
+export type RegisteredCredentialUpdated = { 
+    updated: RegisteredCredential;
+} & RegisteredCredentialForUpdate 
+
+
 
 export class CCRegistry extends DefaultCapo {
     get specializedCapo() {
@@ -83,14 +86,17 @@ export class CCRegistry extends DefaultCapo {
     }
 
     @datum
-    mkDatumRegisteredCredential(d: RegisteredCredentialOnchain): InlineDatum {
+    mkDatumRegisteredCredential<T extends RegisteredCredentialOnchain>(d: T): InlineDatum {
         //!!! todo: make it possible to type these datum helpers more strongly
         //  ... at the interface to Helios
         console.log("--> mkDatumCharter", d);
         const { RegisteredCredential: hlRegisteredCredential } =
             this.onChainDatumType;
         const { CredStruct: hlCredStruct } = this.onChainTypes;
-        debugger;
+
+        //@ts-expect-error can't seem to tell the the Updated alternative actually does have this attribut,
+        //    ... just because the Create alternative does not...
+        const rec = d.updated || d.cred;
         const {
             credType,
             credName,
@@ -99,7 +105,7 @@ export class CCRegistry extends DefaultCapo {
             issuerName,
             expectations,
             issuingGovInfo,
-        } = d.cred;
+        } = rec
 
         const credAuthority = this.mkOnchainDelegateLink(d.credAuthority);
         debugger;
@@ -156,7 +162,7 @@ export class CCRegistry extends DefaultCapo {
     async mkTxnCreatingRegistryEntry<TCX extends StellarTxnContext<any>>(
         cred: RegisteredCredential,
         iTcx?: TCX
-    ) {
+    ) : Promise<TCX> {
         // to make a new cred entry, we must:
         //  - make a UUT for the credential listing (in-contract datum)
         //  - ... and a UUT for administrative authority on that credential
@@ -216,15 +222,18 @@ export class CCRegistry extends DefaultCapo {
     @partialTxn
     txnReceiveRegistryEntry<TCX extends StellarTxnContext<any>>(
         tcx: TCX,
-        cred: RegisteredCredentialOnchain,
-        existingUtxo?: TxInput
-    ) {
+        cred: RegisteredCredentialForUpdate | RegisteredCredentialCreate,
+    ) : TCX {
+        debugger
+        const credMinValue = this.mkMinTv(this.mph, cred.id);
+        const utxo = new TxOutput(
+            this.address,
+            credMinValue,
+            this.mkDatumRegisteredCredential(cred)
+        );
+
         return tcx.addOutput(
-            new TxOutput(
-                this.address,
-                this.mkMinTv(this.mph, cred.id),
-                this.mkDatumRegisteredCredential(cred)
-            )
+              utxo  
         );
     }
     // Address.fromHash(cred.credAuthority.delegateValidatorHash),
@@ -246,7 +255,7 @@ export class CCRegistry extends DefaultCapo {
     }
 
     /**
-     * Reads the datum details for a RegisteredCredential datum
+     * Reads the datum details for a given RegisteredCredential id
      * @remarks
      *
      * Asynchronously reads the UTxO for the given id and returns its underlying datum via {@link CCRegistry.readRegistryEntry}
@@ -259,19 +268,39 @@ export class CCRegistry extends DefaultCapo {
         return this.readRegistryEntry(utxo);
     }
 
-    async readRegistryEntry(utxo: TxInput) {
+    /**
+     * Reads the datum details for a RegisteredCredential datum from UTxO
+     * @remarks
+     *
+     * Parses the UTxO for the given id.
+     *
+     * If you have a credId, you can use {@link CCRegistry.findRegistryEntry} instead.
+     *
+     * The resulting data structure includes the actual on-chain data
+     * as well as the `id` actually found and the `utxo` parsed, for ease
+     * of updates via {@link CCRegistry.mkTxnUpdatingCredEntry}
+     *
+     * @param utxo - a UTxO having a registry-entry datum, such as found with {@link CCRegistry.findRegistryUtxo}
+     * @public
+     **/
+    async readRegistryEntry(utxo: TxInput) 
+    : Promise<RegisteredCredentialForUpdate | undefined> {
         const a = utxo.value.assets.getTokenNames(this.mph);
         const credId = a
-                .map((x) => helios.bytesToText(x.bytes))
-                .find((x) => x.startsWith("regCred"));
-        
+            .map((x) => helios.bytesToText(x.bytes))
+            .find((x) => x.startsWith("regCred"));
+
         const result = await this.readDatum<RegisteredCredentialOnchain>(
             "RegisteredCredential",
             utxo.origOutput.datum as InlineDatum
         );
-        if (!result) return result;
-        result.id = credId;
-        return result;
+        if (!result) return undefined;
+
+        return {
+            ...result,
+            utxo,
+            id: credId,
+        }
     }
 
     /**
@@ -316,32 +345,25 @@ export class CCRegistry extends DefaultCapo {
      **/
     @txn
     async mkTxnUpdatingCredEntry(
-        // cred: RegisteredCredentialOnchain,
-        update: RegisteredCredentialUpdate
-    ) {
+        credForUpdate: RegisteredCredentialUpdated
+    ) : Promise<StellarTxnContext<any>> {
         const {
             // id,
             utxo: currentUtxo,
-            original,
-            cred: newCredState,
-        } = update;
+            credAuthority,
+            updated,
+        } = credForUpdate;
 
-        const existing =
-            original || (await this.readRegistryEntry(currentUtxo));
-
-        const { credAuthority } = existing;
-        const authority = await this.getCredEntryDelegate(existing);
+        const authority = await this.getCredEntryDelegate(credForUpdate);
         const tcx = await authority.txnGrantAuthority(
             new StellarTxnContext<any>()
         );
-        const tcx2 = tcx.addInput(
-            update.utxo,
+
+        const tcx2 = tcx.attachScript(this.compiledScript).addInput(
+            currentUtxo,
             this.activityUpdatingCredential()
         );
-        return this.txnReceiveRegistryEntry(tcx2, {
-            credAuthority,
-            cred: newCredState,
-        });
+        return this.txnReceiveRegistryEntry(tcx2, credForUpdate)
     }
 
     requirements() {

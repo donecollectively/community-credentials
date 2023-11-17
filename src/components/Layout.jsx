@@ -56,21 +56,20 @@ function Header({ navigation }) {
                 </Link>
                 <div className="ml-5 font-display dark:text-slate-400">
                     <div className="ml-5">
-                        <div className="ml-5">
-                            <div className="ml-5">
-                                <div className="ml-5">
+                                <div id="topLeft" className="ml-10">
                                     {
                                         //!!!customize
                                     }
-                                    ALPHA
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="-my-5 mr-6 sm:mr-8 md:mr-0">{/* <Search /> */}</div>
+            <div id="topCenter" className="-my-5 flex-grow mr-6 sm:mr-8 md:mr-0 ">
+                {/* <Search /> */}
+            </div>
             <div className="relative flex basis-0 justify-end gap-6 sm:gap-8 md:flex-grow">
+                <div id="topRight" className="text-green-500">
+                </div>
                 <ThemeSelector className="relative z-10" />
                 {
                     //!!!customize

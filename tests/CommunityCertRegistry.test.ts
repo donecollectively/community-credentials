@@ -10,9 +10,9 @@ import {
 import {
     StellarTestContext,
     addTestContext,
-} from "@donecollectively/stellar-contracts"
+} from "@donecollectively/stellar-contracts/testing"
 
-import { Address, TxId, TxOutput, Value, bytesToText } from "@hyperionbt/helios"
+// import { Address, TxId, TxOutput, Value, bytesToText } from "@hyperionbt/helios"
 import { CCRTestHelper } from "./CCRTestHelper.js"
 
 type localTC = StellarTestContext<CCRTestHelper>
@@ -27,16 +27,19 @@ describe("Community cert registry", async () => {
         return addTestContext(context, CCRTestHelper)
     })
 
-    describe("Can be instantiated based on result of original charterMint", () => {
-        it("can build transactions that mint non-'charter' tokens", async (context: localTC) => {
-            const {
-                h,
-                h: { network, actors, delay, state },
-            } = context;
-            
-            const tcx  = await h.mintCharterToken();
+    it("can be instantiated based on result of original charterMint", async (context: localTC) => {
+        const {
+            h,
+            h: { network, actors, delay, state },
+        } = context
 
+        const tcx = await h.mintCharterToken()
+        const config = tcx.state.bootstrappedConfig;
+        const addr = h.strella.address;
 
-        })
+        expect(config).toBeTruthy();
+        await h.initialize({randomSeed: 19, config});
+        expect(h.strella.address.eq(addr), "address mismatch").toBeTruthy()
     })
+
 })

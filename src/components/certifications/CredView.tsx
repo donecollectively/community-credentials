@@ -8,11 +8,14 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Prose } from "@/components/Prose.jsx";
 import { useLiveQuery } from "dexie-react-hooks";
-import { RegisteredCredentialOnchain } from "../../contracts/CCRegistry.js";
+import { RegisteredCredentialOnchain, RegisteredCredentialForUpdate } from "../../contracts/CCRegistry.js";
 import { Markdoc } from "../Markdoc.jsx";
 import { helios } from "@donecollectively/stellar-contracts";
 import { ClientSideOnly } from "../ClientSideOnly.jsx";
 import { inPortal } from "../../inPortal.jsx";
+import { credRegistryProps } from "./sharedPropTypes.js";
+import { Button } from "../Button.jsx";
+import link from "next/link.js"; const Link = link.default
 
 // ViewCert.getInitialPXXrops = async (ctx) => {
 //     const { id } = ctx.query
@@ -28,9 +31,10 @@ const { BlockfrostV0, Cip30Wallet, TxChain } = helios;
 type hWallet = typeof Cip30Wallet.prototype;
 
 type propsType = {
-    cred: RegisteredCredentialOnchain;
+    cred: RegisteredCredentialForUpdate;
     wallet?: hWallet;
-};
+} & credRegistryProps
+
 type stateType = {
     rendered: boolean
 }
@@ -47,6 +51,7 @@ export class CredView extends React.Component<propsType, stateType> {
         const {
             cred: { cred },
             wallet,
+            credsRegistry,
         } = this.props;
         const metaTable = (
             <Prose className="">
@@ -54,38 +59,40 @@ export class CredView extends React.Component<propsType, stateType> {
                     <tbody>
                         <tr>
                             <th>
-                                Issued by
-                                <br />
-                                <br />
+                                <strong>Issued by</strong>
                             </th>
                             <td>
-                                <strong>{cred.issuerName}</strong>
+                                {cred.issuerName}
                             </td>
                         </tr>
-                        <tr>
+                        {/* <tr>
                             <th>Registration space</th>
                             <td>
                                 <strong>???? Cardano on-chain</strong>
                             </td>
-                        </tr>
+                        </tr> */}
                         <tr>
-                            <th>Issuance platform</th>
+                            <th><strong>Issuance platform</strong></th>
                             <td>
-                                <strong>??? AtalaPRISM via LearnerShape</strong>
+                                {cred.issuancePlatform || "‹unspecified›"}
+                                {/* <strong>??? AtalaPRISM via LearnerShape</strong> */}
                             </td>
                         </tr>
                         <tr>
-                            <th>Issuance URL</th>
+                            <th><strong>Issuance URL</strong></th>
                             <td>
-                                <strong>???</strong>
+                                {cred.issuanceUrl ? 
+                                    <Link href={cred.issuanceUrl}>click here</Link>
+                                    : <>‹none›</>
+                                }
                             </td>
                         </tr>
-                        <tr>
+                        {/* <tr>
                             <th>Verification Service</th>
                             <td>
                                 <strong>???</strong>
                             </td>
-                        </tr>
+                        </tr> */}
                     </tbody>
                 </table>
             </Prose>
@@ -141,7 +148,7 @@ export class CredView extends React.Component<propsType, stateType> {
                 </div>
                 <h4>Issuance requirements / Governance Process</h4>
 
-                {cred.issuingGovInfo}
+                <Markdoc content={cred.issuingGovInfo} />
 
                 <div className="block lg:hidden">
                     <hr />
@@ -153,6 +160,13 @@ export class CredView extends React.Component<propsType, stateType> {
     }
 
     possibleEditButton() {
+        const {walletUtxos, credsRegistry, cred} = this.props;
+        if (!walletUtxos) return "no wallet utxos"; // undefined
+        // const delegateToken = credsRegistry.tvForDelegate(cred.credAuthority)
+        const tokenPredicate = credsRegistry.mkDelegatePredicate(cred.credAuthority)
+        const foundToken = walletUtxos.find(tokenPredicate)
+        if (!foundToken) return "no tokens" //undefined
 
+        return <Button href={`${cred.id}/edit`}>Update Listing</Button>
     }
 }

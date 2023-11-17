@@ -31,11 +31,13 @@ import {
     StellarConstructorArgs,
     StellarTxnContext,
     TxInput,
+    WalletHelper,
     dumpAny,
     helios,
 } from "@donecollectively/stellar-contracts";
 import {
     CCRegistry,
+    RegisteredCredentialForUpdate,
     RegisteredCredentialOnchain,
 } from "../../contracts/CCRegistry.js";
 import { CredForm } from "../../components/certifications/CredForm.jsx";
@@ -44,6 +46,7 @@ import { CredView } from "../../components/certifications/CredView.jsx";
 import { Button } from "../../components/Button.jsx";
 import { ClientSideOnly } from "../../components/ClientSideOnly.jsx";
 import { inPortal } from "../../inPortal.jsx";
+import { Progress } from "../../components/Progress.jsx";
 
 // Helios types
 const { BlockfrostV0, Cip30Wallet, TxChain } = helios;
@@ -56,20 +59,26 @@ type paramsType = {
 };
 type NetParams = Awaited<ReturnType<hBlockfrost["getParameters"]>>;
 
-type stateType = {
+export type PageStatus = {
     status?: string;
     error?: true;
+    progressBar?: true | string;
+};
+
+type stateType = PageStatus & {
     credsRegistry?: CCRegistry;
     networkParams?: NetParams;
-    progressBar?: true | string;
     selectedWallet?: string;
     wallet?: hWallet;
+    walletHelper?: WalletHelper;
+    walletUtxos?: TxInput[];
+    networkName?: string;
     connectingWallet?: boolean;
     showDetail?: string;
     tcx?: StellarTxnContext<any>;
 
-    allCreds?: RegisteredCredentialOnchain[];
-    credsIndex?: { [k: string]: RegisteredCredentialOnchain };
+    allCreds?: RegisteredCredentialForUpdate[];
+    credsIndex?: { [k: string]: RegisteredCredentialForUpdate };
 
     nextAction?: keyof typeof actionLabels;
     moreInstructions?: string;
@@ -94,15 +103,15 @@ let mountCount = 0;
 //   _x_   3.  finish contract init
 //   _x_   4.  show init results for deployment
 //   _x_   5. create form
-//   ___   6.  do first registration
-//   ___   7.  do second registration
-//   ___   8.  update a registration
+//   _x_   6.  do first registration
+//   _x_   7.  do second registration
+//   _x_   8.  update a registration
 //   ___   9.  implement registration timeout
 //   ___ 10.
 
-//   ___   ?.  add actor collateral to TCX, on-demand and/or during addScript (when??)
+//   _x_   ?.  add actor collateral to TCX, on-demand and/or during addScript (when??)
 
-class CertsPage extends React.Component<paramsType, stateType> {
+export class CertsPage extends React.Component<paramsType, stateType> {
     bf: hBlockfrost;
     bfFast: hTxChain;
     static notProse = true;
@@ -110,6 +119,7 @@ class CertsPage extends React.Component<paramsType, stateType> {
     constructor(props) {
         super(props);
         this.i = mountCount += 1;
+        this.updateState = this.updateState.bind(this);
         this.createCredential = this.createCredential.bind(this);
         this.fetchRegistryEntries = this.fetchRegistryEntries.bind(this);
         this.closeForm = this.closeForm.bind(this);
@@ -130,7 +140,6 @@ class CertsPage extends React.Component<paramsType, stateType> {
     async createCredential() {
         const { wallet } = this.state;
         if (!wallet) {
-            await this.updateState("connecting wallet", { progressBar: true });
             await this.connectWallet(false);
         }
         debugger;
@@ -163,6 +172,26 @@ class CertsPage extends React.Component<paramsType, stateType> {
         throw new Error(`TODO`);
     }
 
+    get currentRoute(): [
+        "list" | "view" | "create" | "edit",
+        string | undefined
+    ] {
+        const { router } = this.props;
+        const [arg1, arg2] = router.query.args || [];
+
+        if ("create" == arg1) {
+            return ["create", undefined];
+        }
+        if ("edit" == arg2) {
+            const id = arg1;
+            return ["edit", id];
+        }
+        if (arg1) {
+            return ["view", arg1];
+        }
+        return ["list", undefined];
+    }
+
     render() {
         let {
             tcx,
@@ -170,6 +199,8 @@ class CertsPage extends React.Component<paramsType, stateType> {
             allCreds,
             wallet,
             progressBar,
+            walletUtxos,
+            walletHelper,
             status,
             showDetail,
             error,
@@ -181,54 +212,16 @@ class CertsPage extends React.Component<paramsType, stateType> {
         // console.warn(`-------------------------- RENDER ---------------------------\n ---> ${status}`);
         const { router } = this.props;
         const [arg1, arg2] = router.query.args || [];
+        const [route, id] = this.currentRoute;
 
         let results;
         if (error) {
             results = <div>Fix the problem before continuing.</div>;
         }
-        debugger;
-        if (!allCreds) {
-            results = <Progress key={status}>loading</Progress>;
-        } else if ("create" == arg1) {
-            debugger;
-            return (
-                <CredForm
-                    {...{ credsRegistry, wallet }}
-                    create
-                    onSave={this.saved}
-                    onClose={this.closeForm}
-                />
-            );
-        } else if ("edit" == arg2) {
-            const id = arg1;
-            const editing = this.state.credsIndex[id];
-            return (
-                <CredForm
-                    {...{ credsRegistry, wallet }}
-                    cred={editing}
-                    onSave={this.saved}
-                    onClose={this.closeForm}
-                />
-            );
-        } else if (arg1) {
-            const credId = arg1;
-            status = "";
-            const cred = this.state.credsIndex[credId];
-            results = <CredView cred={cred} />;
-        } else {
-            results = (
-                <CredsList
-                    {...{
-                        allCreds,
-                        createCredential: this.createCredential,
-                        credsRegistry,
-                        credsStatus: status,
-                        editCredId: this.editCredential,
-                        // refreshCreds
-                    }}
-                />
-            );
-        }
+
+        const loading = <Progress key={status}>loading</Progress>;
+        const walletInfo = inPortal("topRight", this.renderWalletInfo());
+        const showProgressBar = !!progressBar;
 
         const doNextAction = !!nextAction && (
             <button
@@ -254,50 +247,116 @@ class CertsPage extends React.Component<paramsType, stateType> {
             </>
         ) : null;
 
-        const walletInfo = inPortal("topRight", this.renderWalletInfo());
-        const showProgressBar = !!progressBar;
         const progressLabel = "string" == typeof progressBar ? progressBar : "";
         const renderedStatus =
             (status &&
-                (error ? (
-                    <div
-                        className="error border rounded relative mb-4"
-                        role="alert"
-                        style={{ marginBottom: "0.75em" }}
-                    >
-                        {doNextAction}
-                        <strong className="font-bold">
-                            Whoops! &nbsp;&nbsp;
-                        </strong>
-                        <span className="block inline">{status}</span>
-
-                        {showMoreInstructions}
+                inPortal(
+                    "topCenter",
+                    <>
                         {showProgressBar ? (
                             <Progress>{progressLabel}</Progress>
                         ) : (
                             ""
                         )}
-                    </div>
-                ) : (
-                    <div
-                        className="status border rounded relative mb-4"
-                        role="banner"
-                        style={{ marginBottom: "0.75em" }}
-                    >
-                        {doNextAction}
-                        <span className="block sm:inline">{status}</span>
+                        {error ? (
+                        <div
+                            className="error border rounded relative mb-4"
+                            role="alert"
+                            style={{ marginBottom: "0.75em" }}
+                        >
+                            {doNextAction}
+                            <strong className="font-bold">
+                                Whoops! &nbsp;&nbsp;
+                            </strong>
+                            <span className="block inline">{status}</span>
 
-                        {showMoreInstructions}
-                        {showProgressBar ? (
-                            <Progress>{progressLabel}</Progress>
+                            {showMoreInstructions}
+                        </div>
                         ) : (
-                            ""
+                        <div
+                            className="status border rounded relative mb-4"
+                            role="banner"
+                            // style={{ marginBottom: "-7em" }}
+                        >
+                            {doNextAction}
+                            <span className="block sm:inline">{status}</span>
+
+                            {showMoreInstructions}
+                        </div>
                         )}
-                    </div>
-                ))) ||
+                    </>
+                )) ||
             "";
+
+        if (!allCreds) {
+            results = inPortal("topCenter", loading);
+        } else if ("create" == route) {
+            if (wallet) {
+                results = (
+                    <CredForm
+                        {...{
+                            credsRegistry,
+                            wallet,
+                            walletHelper,
+                            walletUtxos,
+                            updateState: this.updateState,
+                            refresh: this.fetchRegistryEntries,
+                            router,
+                        }}
+                        create
+                        onSave={this.saved}
+                        onClose={this.closeForm}
+                    />
+                );
+            } else {
+                this.connectWallet(false);
+            }
+        } else if ("edit" == route) {
+            if (wallet) {
+                const { updateState } = this;
+                const editing = this.state.credsIndex[id];
+                results = (
+                    <CredForm
+                        {...{
+                            credsRegistry,
+                            wallet,
+                            updateState,
+                            refresh: this.fetchRegistryEntries,
+                            router,
+                        }}
+                        cred={editing}
+                        onSave={this.saved}
+                        onClose={this.closeForm}
+                    />
+                );
+            } else {
+                this.connectWallet(false);
+                results = loading;
+            }
+        } else if ("view" == route) {
+            // status = "";
+            const cred = this.state.credsIndex[id];
+            results = (
+                <CredView {...{ cred, wallet, walletUtxos, credsRegistry }} />
+            );
+        } else {
+            results = (
+                <CredsList
+                    {...{
+                        allCreds,
+                        createCredential: this.createCredential,
+                        credsRegistry,
+                        credsStatus: status,
+                        editCredId: this.editCredential,
+                        // refreshCreds
+                    }}
+                />
+            );
+        }
+
         const detail = showDetail ? (
             <Prose className={``}>
+                SHOWDETAIL
                 <pre>{showDetail}</pre>
             </Prose>
         ) : (
@@ -330,18 +389,26 @@ class CertsPage extends React.Component<paramsType, stateType> {
     }
 
     renderWalletInfo() {
-        const { wallet, connectingWallet } = this.state;
+        const { wallet, networkName, connectingWallet } = this.state;
 
         if (wallet) {
+            return <div>connected to {networkName}</div>;
+        } else if (connectingWallet) {
             return (
                 <div>
-                    connected to {wallet.isMainnet() ? "mainnet" : "testnet"}
+                    <Button variant="secondary" disabled className="-mt-3">
+                        ... connecting ...
+                    </Button>
                 </div>
             );
         } else {
             return (
                 <div>
-                    <Button variant="secondary" className="-mt-3" onClick={this.onConnectButton}>
+                    <Button
+                        variant="secondary"
+                        className="-mt-3"
+                        onClick={this.onConnectButton}
+                    >
                         Connect Wallet
                     </Button>
                 </div>
@@ -350,11 +417,7 @@ class CertsPage extends React.Component<paramsType, stateType> {
     }
 
     onConnectButton: MouseEventHandler<HTMLButtonElement> = async (event) => {
-        await this.updateState("connecting to Cardano wallet", {
-            connectingWallet: true,
-        });
-        await this.connectWallet();
-        await this.updateState("", { connectingWallet: false });
+        this.connectWallet();
     };
 
     txnDump() {
@@ -417,18 +480,28 @@ class CertsPage extends React.Component<paramsType, stateType> {
         //! it suppresses lame nextjs/react-sourced double-trigger of mount sequence
         // if (this._unmounted) return
         // debugger
-        if (this.connectingWallet) return;
+        if (this.connectingWallet) {
+            console.warn(
+                "suppressing redundant wallet connect, already pending"
+            );
+            
+            return this.connectingWallet;
+        }
 
+        await this.updateState("connecting to Cardano wallet", {
+            connectingWallet: true,
+            progressBar: true,
+        });
         const connecting = (this.connectingWallet =
             //@ts-expect-error on Cardano
             window.cardano[selectedWallet].enable());
         const handle: helios.Cip30Handle = await connecting;
 
-        const network = networkNames[await handle.getNetworkId()];
-        if (this.bf.networkName !== network) {
+        const networkName = networkNames[await handle.getNetworkId()];
+        if (this.bf.networkName !== networkName) {
             //! checks that wallet network matches network params / bf
             this.updateState(
-                `wallet network mismatch; expected ${this.bf.networkName}, wallet ${network}`,
+                `wallet network mismatch; expected ${this.bf.networkName}, wallet ${networkName}`,
                 { error: true }
             );
         }
@@ -442,16 +515,27 @@ class CertsPage extends React.Component<paramsType, stateType> {
             return;
         }
 
+        const walletHelper = new helios.WalletHelper(wallet);
         await this.updateState("initializing registry with wallet connected", {
             wallet,
+            connectingWallet: false,
+            walletHelper,
+            networkName,
+        });
+        walletHelper.getUtxos().then((walletUtxos) => {
+            this.updateState(undefined, { walletUtxos });
         });
         return this.connectCredsRegistry(autoNext);
     }
 
     // -- step 3 - check if the creds registry is ready for use
     async connectCredsRegistry(autoNext = true) {
+        const [route] = this.currentRoute;
+        if ("create" == route || "edit" == route) {
+            debugger;
+            await this.connectWallet();
+        }
         const { networkParams, wallet } = this.state;
-
         let config = ccrConfig
             ? { config: CCRegistry.parseConfig(ccrConfig) }
             : { partialConfig: {} };
@@ -467,10 +551,11 @@ class CertsPage extends React.Component<paramsType, stateType> {
             // partialConfig: {},
             ...config,
         };
-
         try {
             const credsRegistry = new CCRegistry(cfg);
-            if (!(await credsRegistry.isConfigured)) {
+            const isConfigured = await credsRegistry.isConfigured;
+            if (!isConfigured) {
+                alert("not configured");
                 await this.updateState(
                     `Creds Registry contract isn't yet created or configured.  Add a configuration if you have it, or create the registry now.`,
                     { credsRegistry, nextAction: "initializeRegistry" }
@@ -478,7 +563,6 @@ class CertsPage extends React.Component<paramsType, stateType> {
                 return;
                 // return this.stellarSetup();
             }
-
             if (!autoNext)
                 return this.updateState(
                     "",
@@ -491,8 +575,9 @@ class CertsPage extends React.Component<paramsType, stateType> {
                 {
                     credsRegistry,
                 },
-                "//searching or freshening search after wallet connection"
+                "//searching (or freshening search after wallet connection)"
             );
+
             this.fetchRegistryEntries();
         } catch (error) {
             this.reportError(error, "checking registry configuration: ", {
@@ -588,10 +673,11 @@ class CertsPage extends React.Component<paramsType, stateType> {
     async fetchRegistryEntries() {
         const { credsRegistry } = this.state;
 
+        
         const found = await this.bf.getUtxos(credsRegistry.address);
         const { mph } = credsRegistry;
 
-        const allCreds: RegisteredCredentialOnchain[] = [];
+        const allCreds: RegisteredCredentialForUpdate[] = [];
         const credsIndex = {};
         const waiting: Promise<any>[] = [];
         for (const utxo of found) {
@@ -654,23 +740,4 @@ class CertsPage extends React.Component<paramsType, stateType> {
         });
     }
 }
-const Progress: React.FC<any> = ({ children }) => {
-    return (
-        <Prose className="">
-            {children}
-            <br />
-
-            <div aria-busy="true" aria-describedby="progress-bar"></div>
-
-            <div className="progress progress-striped">
-                <progress
-                    className="progress-bar"
-                    id="progress-bar"
-                    aria-label="Content loading…"
-                ></progress>
-            </div>
-        </Prose>
-    );
-};
-
 export default withRouter(CertsPage);

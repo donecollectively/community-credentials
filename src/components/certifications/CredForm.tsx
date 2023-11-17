@@ -9,20 +9,28 @@ import {
     CCRegistry,
     RegisteredCredential,
     RegisteredCredentialOnchain,
+    RegisteredCredentialForUpdate,
 } from "../../contracts/CCRegistry.js";
 import { Prose } from "../Prose.jsx";
 import head from "next/head.js";  const Head = head.default;
 
-import { Wallet, dumpAny } from "@donecollectively/stellar-contracts";
+import { TxOutput, Wallet, dumpAny } from "@donecollectively/stellar-contracts";
+import { credRegistryProps } from "./sharedPropTypes.js";
+import { CertsPage } from "../../pages/certifications/[[...args]].jsx";
+import { NextRouter } from "next/router.js";
+import { CredView } from "./CredView.jsx";
 
+type stateUpdaterFunc = CertsPage["updateState"]
 type propsType = {
-    credsRegistry: CCRegistry;
-    wallet: Wallet;
-    cred?: RegisteredCredentialOnchain;
+    cred?: RegisteredCredentialForUpdate;
     create?: boolean;
+    updateState: stateUpdaterFunc
+    refresh: Function,
+    router: NextRouter,
     onSave: Function;
     onClose: Function;
-};
+} & credRegistryProps
+
 type stateType = {
     modified: boolean;
     gen: number;
@@ -34,11 +42,13 @@ type FieldProps = {
     rec: RegisteredCredential;
     fn: string;
     as?: React.ElementType;
-    rows: number;
+    rows?: number;
+    options? : string[];
     placeholder?: string;
     label: string;
     defaultValue: string;
-
+    style? : Record<string,any>;
+    tableCellStyle? : Record<string,any>;
     helpText: string;
     index?: number;
     onChange: ChangeEventHandler<HTMLInputElement>;
@@ -46,27 +56,27 @@ type FieldProps = {
 
 const testCredInfo = {
 // first - DEMU
-    // credDesc: "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
-    // credName: "DEMU Certified Node Operator",
-    // credSummary: "Certifies administrative and technical understanding of operating Munode",
-    // credType: "skill",
-    // expectations: [
-    //     "has a practical understanding of general unix system administration",
-    //     "can operate a nodejs-based service, including handling of version upgrades, with Docker",
-    //     "has learned about delegation and music-inventory mechanics of DEMU's content network",
-    //     "owns a $DEMU.munodeOperator token"
-    // ],
-    // issuerName: "DEMU",
-    // issuingGovInfo: "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate",
+    credDesc: "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
+    credName: "DEMU Certified Node Operator",
+    credSummary: "Certifies administrative and technical understanding of operating Munode",
+    credType: "skill",
+    expectations: [
+        "has a practical understanding of general unix system administration",
+        "can operate a nodejs-based service, including handling of version upgrades",
+        "has learned about delegation and music-inventory mechanics of DEMU's content network",
+        "owns a $DEMU.munodeOperator token"
+    ],
+    issuerName: "DEMU",
+    issuingGovInfo: "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate.",
 
-    credName: `Sample ${new Date().toUTCString()}`,
-    credDesc: "test description",
-    credSummary: "tester",
-    credType: "testing",
-    expectations: ["none"],
-    issuerName: "nobody",
-    issuingGovInfo: "hi!",
-    credIssuerDID: "n/a",
+    // credName: `Sample ${new Date().toUTCString()}`,
+    // credDesc: "test description",
+    // credSummary: "tester",
+    // credType: "testing",
+    // expectations: ["none"],
+    // issuerName: "nobody",
+    // issuingGovInfo: "hi!",
+    // credIssuerDID: "n/a",
 };
 
 
@@ -92,7 +102,10 @@ type fieldOptions =
           placeholder?: string;
           defaultValue?: string;
           rows?: number;
-          type?: "textarea" | "input";
+          style? : Record<string,any>,
+          tableCellStyle? : Record<string,any>,
+          options? : string [];
+          type?: "textarea" | "input" | "select" ;
       }
     | undefined;
 
@@ -130,7 +143,7 @@ export class CredForm extends React.Component<propsType, stateType> {
             const minter = await credsRegistry.getMintDelegate();
             // tcx = await credsRegistry.mkTxnCreatingRegistryEntry(testCredInfo);
             // console.warn(dumpAny(tcx));
-            debugger;
+            
             // await credsRegistry.submit(tcx);
         } catch (error) {
             console.error(error.stack);
@@ -146,12 +159,11 @@ export class CredForm extends React.Component<propsType, stateType> {
 
     render() {
         const { current: rec, modified, error } = this.state || {};
-        const { create, onClose, onSave } = this.props;
+        const { cred, create, onClose, onSave, credsRegistry } = this.props;
         if (!rec) return ""; //wait for didMount
         const showTitle = (
             <>
                 {create && "Creating"} Credential Listing
-                {create || `: ${rec.credName}`}
             </>
         );
         let sidebarContent;
@@ -250,8 +262,22 @@ export class CredForm extends React.Component<propsType, stateType> {
                         <table>
                             <tbody>
                                 {this.field("Credential Type", "credType", {
-                                    placeholder:
-                                        "e.g. person, skill, experience, aptitude",
+                                    type: "select",
+                                    options: [
+                                        "person", 
+                                        "skill", 
+                                        "experience", 
+                                        "training cert",
+                                        "aptitude", 
+                                        "other"
+                                    ],
+                                    tableCellStyle: {
+                                        padding: "0.25em",
+                                        // backgroundColor: "#142281e7"
+                                    },
+                                    style: {
+                                        backgroundColor: "#142281e7"
+                                    }
                                 })}
                                 {this.field("Credential Name", "credName", {
                                     placeholder: "Short onscreen label",
@@ -323,6 +349,14 @@ export class CredForm extends React.Component<propsType, stateType> {
                             </tfoot>
                         </table>
                     </form>
+                    {modified && <>
+                        <br/>
+                        <h3>Preview</h3>
+                        <CredView {...{
+                            cred:{...cred, cred: rec},
+                             credsRegistry
+                        }} />
+                    </>}
                 </Prose>
             </div>
         );
@@ -332,6 +366,9 @@ export class CredForm extends React.Component<propsType, stateType> {
         const { current: rec } = this.state;
         const { 
             array, type: as = 'input',  
+            options: selectOptions,
+            style,
+            tableCellStyle,
             rows, helpText, placeholder, defaultValue, 
         } = options || {}; //prettier-ignore
 
@@ -347,7 +384,10 @@ export class CredForm extends React.Component<propsType, stateType> {
                         placeholder,
                         defaultValue,
                         helpText,
+                        options: selectOptions,
                         rows,
+                        style,
+                        tableCellStyle,
                         onChange: this.changed,
                     }}
                 />
@@ -373,6 +413,8 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 defaultValue,
                                 helpText,
                                 rows,
+                                style,
+                                tableCellStyle,
                                 onChange: this.changed,
                             }}
                         />
@@ -403,36 +445,49 @@ export class CredForm extends React.Component<propsType, stateType> {
 
     async save(e: React.SyntheticEvent) {
         const { current: rec } = this.state;
-        const { cred: original, credsRegistry, create, wallet } = this.props;
+        const { cred: credForUpdate, refresh, updateState, credsRegistry, router, create, wallet } = this.props;
         e.preventDefault();
         e.stopPropagation();
 
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
-        const cred: RegisteredCredential = Object.fromEntries(
+        const updatedCred: RegisteredCredential = Object.fromEntries(
             formData.entries()
         ) as unknown as RegisteredCredential;
         const exp = formData.getAll("expectations") as string[];
         while (!exp.at(-1)) exp.pop();
-        cred.expectations = exp;
+        updatedCred.expectations = exp;
 
         try {
-            debugger;
+            const txnDescription = `${create ? "creation" : "update"} txn`
+            updateState(`preparing ${txnDescription}`, {progressBar: true})
             const tcx = create
-                ? await credsRegistry.mkTxnCreatingRegistryEntry(cred)
+                ? await credsRegistry.mkTxnCreatingRegistryEntry(updatedCred)
                 : await credsRegistry.mkTxnUpdatingCredEntry({
-                      cred,
-                      original,
-                      //  cred: original!,
-                      //  id: cred.credAuthority.uutName,
-                      //  utxo:
+                    ... credForUpdate,
+                    updated: updatedCred
                   });
+            console.warn(dumpAny(tcx))
+            updateState(`sending the ${txnDescription} to your wallet for approval`,
+            {
+                progressBar: true
+            })
+            const minDelay = new Promise((res) => setTimeout(res, 2000));
+
             await credsRegistry.submit(tcx);
+            await minDelay
+            updateState(`submitting the ${txnDescription} to the network`);
+            refresh().then(async () => {
+                updateState(`The update will take few moments before it's confirmed`);
+                await new Promise(res => setTimeout(res, 3000))
+                updateState("")
+            })
+            router.push("/certifications")
             // this.setState({modified: true})
         } catch (error) {
             console.error(error.stack);
             debugger;
-            this.setState({ error: error.message });
+            updateState( error.message, { error: true });
         }
     }
 }
@@ -446,7 +501,10 @@ function Field({
     placeholder,
     defaultValue,
     rows,
+    options,
     label,
+    style,
+    tableCellStyle,
     onChange,
 }: FieldProps) {
     const fieldId = `${fn}.${index || ""}`;
@@ -461,11 +519,14 @@ function Field({
         style: { borderBottom: "none" },
     };
     const arrayTableStyle = isOnlyOrLastRow ? {} : noBottomBorder;
-
+    const renderedOptions = options ? options.map(s => {
+        const selected = value==s ? {selected:true} : {};
+        return <option value={s} {...selected}>{s}</option>
+    }) : undefined
     return (
         <tr {...arrayTableStyle}>
             <th>{!!index || <label htmlFor={fieldId}> {label}</label>}</th>
-            <td>
+            <td style={tableCellStyle || {}}>
                 <As
                     autoComplete="off"
                     style={{
@@ -474,11 +535,13 @@ function Field({
                         fontWeight: "bold",
                         padding: "0.4em",
                         background: "#000",
+                        ...style,
                     }}
                     id={fieldId}
                     rows={rows}
                     name={fn}
                     onInput={onChange}
+                    children={renderedOptions}
                     {...{ placeholder, defaultValue: value || defaultValue }}
                 ></As>
                 {isOnlyOrLastRow && helpText && (
