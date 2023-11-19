@@ -27,7 +27,7 @@
     "browserslist": "defaults, not ie <= 11",
     "dependencies": {
         "@docsearch/react": "^3.2.1",
-        "@donecollectively/stellar-contracts": "git://github.com/donecollectively/stellar-contracts#v0.8.1",
+        "@donecollectively/stellar-contracts": "git://github.com/donecollectively/stellar-contracts#v0.8.2",
         "@headlessui/react": "^1.7.2",
         "@markdoc/markdoc": "0.1.7",
         "@markdoc/next.js": "0.1.6",
