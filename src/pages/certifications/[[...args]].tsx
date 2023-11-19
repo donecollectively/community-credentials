@@ -556,7 +556,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                 networkParams,
                 myActor: wallet,
                 isDev: "development" == process.env.NODE_ENV,
-                // optimize: true,
+                optimize: false,
             },
             // partialConfig: {},
             ...config,
