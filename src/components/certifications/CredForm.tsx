@@ -56,7 +56,7 @@ type FieldProps = {
 };
 
 const testCredInfo = {
-    expectations: [],
+    expectations: [""],
     // first - DEMU
     // credDesc:
     //     "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
