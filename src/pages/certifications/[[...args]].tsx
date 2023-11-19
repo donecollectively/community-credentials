@@ -142,7 +142,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         if (!wallet) {
             await this.connectWallet(false);
         }
-        debugger;
+
         await this.updateState("", {}, "//triggering creation screen");
         this.router.push(`/certifications/create`, "", { shallow: true });
         // window.history.pushState("", "", "/certifications/create")
@@ -532,7 +532,6 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     async connectCredsRegistry(autoNext = true) {
         const [route] = this.currentRoute;
         if ("create" == route || "edit" == route) {
-            debugger;
             await this.connectWallet();
         }
         const { networkParams, wallet } = this.state;
@@ -547,6 +546,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                 networkParams,
                 myActor: wallet,
                 isDev: "development" == process.env.NODE_ENV,
+                // optimize: true,
             },
             // partialConfig: {},
             ...config,
@@ -555,7 +555,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             const credsRegistry = new CCRegistry(cfg);
             const isConfigured = await credsRegistry.isConfigured;
             if (!isConfigured) {
-                alert("not configured");
+                // alert("not configured");
                 await this.updateState(
                     `Creds Registry contract isn't yet created or configured.  Add a configuration if you have it, or create the registry now.`,
                     { credsRegistry, nextAction: "initializeRegistry" }
@@ -650,7 +650,6 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             );
 
             // this.seekConfirmation()
-            debugger;
         } catch (e) {
             console.error(e);
             this.updateState(`wallet reported "${e.message}"`, {
@@ -673,7 +672,6 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     async fetchRegistryEntries() {
         const { credsRegistry } = this.state;
 
-        
         const found = await this.bf.getUtxos(credsRegistry.address);
         const { mph } = credsRegistry;
 
@@ -724,15 +722,20 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         //     return
         // }
         console.log(`instance ${this.i}`, { status });
-        const statusUpdate = "undefined" === typeof status ? {} : { status };
+        const stateUpdate =
+            "undefined" === typeof status
+                ? {}
+                : {
+                      status,
+                      nextAction,
+                      error,
+                      actionLabel,
+                      moreInstructions,
+                      progressBar,
+                  };
         const newState = {
             ...stateProps,
-            ...statusUpdate,
-            nextAction,
-            error,
-            actionLabel,
-            moreInstructions,
-            progressBar,
+            ...stateUpdate,
         };
         console.error(extraComment || "", { newState });
         return new Promise<void>((resolve) => {
