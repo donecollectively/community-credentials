@@ -12,8 +12,6 @@ specifiers:
   autoprefixer: ^10.4.12
   clsx: ^1.2.1
   cross-fetch: ^4.0.0
-  dexie: ^3.2.4
-  dexie-react-hooks: ^1.1.6
   eslint: 8.26.0
   eslint-config-next: 13.0.2
   focus-visible: ^5.2.0
@@ -33,6 +31,7 @@ specifiers:
 
 dependencies:
   '@docsearch/react': 3.5.1_cccfvuyjnmee77bwg4wjyn6zre
+  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/f262954121034cd3fbfb80f8816b19d9a337f587
   '@headlessui/react': 1.7.15_biqbaboplfbrettd7655fr4n2y
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6_sfilzu25rkwkmvqsscsbq2fr4e
@@ -41,8 +40,6 @@ dependencies:
   autoprefixer: 10.4.14
   clsx: 1.2.1
   cross-fetch: 4.0.0
-  dexie: 3.2.4
-  dexie-react-hooks: 1.1.6_ji6zua76ftap4duzbe755i3mya
   focus-visible: 5.2.0
   next: 13.5.6_biqbaboplfbrettd7655fr4n2y
   postcss-focus-visible: 6.0.4
@@ -53,7 +50,6 @@ dependencies:
   tailwindcss: 3.3.5
 
 devDependencies:
-  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/f262954121034cd3fbfb80f8816b19d9a337f587
   '@types/react': 18.2.22
   eslint: 8.26.0
   eslint-config-next: 13.0.2_gsb724fc5bwv46dk2ugeyfyj44
@@ -1223,23 +1219,6 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /dexie-react-hooks/1.1.6_ji6zua76ftap4duzbe755i3mya:
-    resolution: {integrity: sha512-xSblWtmPwhafWNWMECsW7zMMmBu8goH3QqTxEfwBNoNG1mgsM0oFclippev7ss9HhKICqBwTjgqpscci5Ed4mA==}
-    peerDependencies:
-      '@types/react': '>=16'
-      dexie: ^3.2 || ^4.0.1-alpha
-      react: '>=16'
-    dependencies:
-      '@types/react': 18.2.22
-      dexie: 3.2.4
-      react: 18.2.0
-    dev: false
-
-  /dexie/3.2.4:
-    resolution: {integrity: sha512-VKoTQRSv7+RnffpOJ3Dh6ozknBqzWw/F3iqMdsZg958R0AS8AnY9x9d1lbwENr0gzeGJHXKcGhAMRaqys6SxqA==}
-    engines: {node: '>=6.0'}
-    dev: false
-
   /didyoumean/1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
     dev: false
@@ -2201,7 +2180,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
-    dev: true
 
   /magic-string/0.30.3:
     resolution: {integrity: sha512-B7xGbll2fG/VjP+SWg4sX3JynwIU0mjoTc6MPpKNuIvftk6u6vqhDnk1R80b8C2GBR6ywqy+1DcKBrevBg+bmw==}
@@ -2780,7 +2758,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /shebang-command/2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
@@ -3325,7 +3302,6 @@ packages:
 
   /yallist/4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
-    dev: true
 
   /yaml/2.3.1:
     resolution: {integrity: sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ==}
@@ -3348,4 +3324,4 @@ packages:
     version: 0.8.1
     dependencies:
       semver: 7.5.3
-    dev: true
+    dev: false
