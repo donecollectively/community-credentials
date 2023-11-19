@@ -1,4 +1,12 @@
-## Getting started
+## Community Credentials
+
+This repository provides a registry of verifiable credentials, in service to the Cardano community.
+
+It uses smart contracts, created with Stellar Contracts and Helios, as a storage location for credential listings.
+
+Currently running on Preprod testnet.
+
+## Developing
 
 To get started with this template, first install the npm dependencies:
 

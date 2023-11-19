@@ -76,10 +76,10 @@ function Header({ navigation }) {
                 }
 
                 <Link
-                    href="https://github.com/github repo"
+                    href="https://github.com/donecollectively/community-credentials/"
                     target="_blank"
                     className="group"
-                    aria-label="LINK/Repo DESCRIPTION for screen readers"
+                    aria-label="Github repo for this website"
                 >
                     <GitHubIcon className="h-6 w-6 fill-slate-400 group-hover:fill-slate-500 dark:group-hover:fill-slate-300" />
                 </Link>
