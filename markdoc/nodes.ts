@@ -1,7 +1,8 @@
-import { Fence } from '@/components/Fence'
+import { Fence } from '@/components/Fence.jsx'
 import { nodes as defaultNodes } from '@markdoc/markdoc'
+import { Config } from "@markdoc/markdoc";
 
-const nodes = {
+const nodes : Config["nodes"] = {
   document: {
     render: undefined,
   },
@@ -16,6 +17,7 @@ const nodes = {
     },
   },
   fence: {
+    //@ts-expect-error
     render: Fence,
     attributes: {
       language: {
