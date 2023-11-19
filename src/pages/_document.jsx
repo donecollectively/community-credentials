@@ -9,7 +9,8 @@ const themeScript = `
     if (theme === 'dark' || (theme === 'system' && isDarkMode.matches)) {
       document.documentElement.classList.add('dark')
     } else if (theme === 'light' || (theme === 'system' && !isDarkMode.matches)) {
-      document.documentElement.classList.remove('dark')
+        // document.documentElement.classList.remove('dark')
+        document.documentElement.classList.add('dark')
     }
 
     return theme

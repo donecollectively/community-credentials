@@ -70,7 +70,7 @@ function Header({ navigation }) {
             <div className="relative flex basis-0 justify-end gap-6 sm:gap-8 md:flex-grow">
                 <div id="topRight" className="text-green-500">
                 </div>
-                <ThemeSelector className="relative z-10" />
+                {/* <ThemeSelector className="relative z-10" /> */}
                 {
                     //!!!customize
                 }
