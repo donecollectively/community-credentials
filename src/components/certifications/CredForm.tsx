@@ -56,22 +56,24 @@ type FieldProps = {
 };
 
 const testCredInfo = {
+    expectations: [],
     // first - DEMU
-    credDesc:
-        "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
-    credName: "DEMU Certified Node Operator",
-    // credSummary: "Certifies administrative and technical understanding of operating Munode",
-    credType: "skill",
-    expectations: [
-        "has a practical understanding of general unix system administration",
-        "can operate a nodejs-based service, including handling of version upgrades",
-        "has learned about delegation and music-inventory mechanics of DEMU's content network",
-        "owns a $DEMU.munodeOperator token",
-    ],
-    issuerName: "DEMU",
-    issuingGovInfo:
-        "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate.",
-    issuancePlatform: "ATALA Prism",
+    // credDesc:
+    //     "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
+    // credName: "DEMU Certified Node Operator",
+    // // credSummary: "Certifies administrative and technical understanding of operating Munode",
+    // credType: "skill",
+    // expectations: [
+    //     "has a practical understanding of general unix system administration",
+    //     "can operate a nodejs-based service, including handling of version upgrades",
+    //     "has learned about delegation and music-inventory mechanics of DEMU's content network",
+    //     "owns a $DEMU.munodeOperator token",
+    // ],
+    // issuerName: "DEMU",
+    // issuingGovInfo:
+    //     "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate.",
+    // issuancePlatform: "ATALA Prism",
+
     // credName: `Sample ${new Date().toUTCString()}`,
     // credDesc: "test description",
     // credSummary: "tester",
