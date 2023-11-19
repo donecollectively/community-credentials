@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
     reactStrictMode: false,
     output: "standalone",
+    basePath: '/community-credentials',
     pageExtensions: ["js", "jsx", "tsx", "md"],
     experimental: {
         scrollRestoration: true,

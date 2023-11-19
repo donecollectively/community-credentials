@@ -149,8 +149,9 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     }
 
     editCredential(id: string) {
+        throw new Error(`unused`);
         this.updateState("", {}, "//edit credential via router");
-        this.router.push(`/certifications/${id}/edit`);
+        // this.router.push(`/certifications/${id}/edit`);
     }
 
     closeForm() {
