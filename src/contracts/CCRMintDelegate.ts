@@ -3,6 +3,9 @@ import { BasicMintDelegate, HeliosModuleSrc, mkHeliosModule } from "@donecollect
 //@ts-expect-error because TS doesn't understand helios
 import CcrSpecialMintDelegate from "./specializedMintDelegate.hl";
 
+//@ts-expect-error because TS doesn't understand helios
+import CcrSpecialCapo from "./specializedCCRegistry.hl";
+
 export class CCRMintDelegate extends BasicMintDelegate {
 
     _m : HeliosModuleSrc 
@@ -11,4 +14,12 @@ export class CCRMintDelegate extends BasicMintDelegate {
 
         return this._m = mkHeliosModule(CcrSpecialMintDelegate, "specializedMintDelegate");
     }
+
+    _c : HeliosModuleSrc
+    get specializedCapo(): HeliosModuleSrc {
+        if (this._c) return this._c;
+
+        return this._c = mkHeliosModule(CcrSpecialCapo, "specializedCapo")
+    }
+
 }

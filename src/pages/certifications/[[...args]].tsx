@@ -2,15 +2,15 @@
 
 const ccrConfig = {
     mph: {
-        bytes: "72e2554075b3b386febcd8e8dd9417d6bd4f330daf55c97dea59448d",
+        bytes: "b1a0634ae5601f1922724edd9b29a097dd9b7ffa0b481dfaac4aaec6",
     },
     rev: "1",
     seedTxn: {
-        bytes: "0502a399deca23b1d78c1fa49de4e336cc3e0826770db5eaed5fd2439b98b6f8",
+        bytes: "8aa1c2ad2cb24794640f80903c61e2f06a172634e472adec5dd00fadc2fa1eb0",
     },
-    seedIndex: "3",
+    seedIndex: "1",
     rootCapoScriptHash: {
-        bytes: "181e82d417fefdad26b171de6d236dadebddce1aa4749261fec8613a",
+        bytes: "aeda5453e72ca3aa62b1aed0add11f51f1c81562f78d07d78d51938f",
     },
 };
 
@@ -106,8 +106,8 @@ let mountCount = 0;
 //   _x_   6.  do first registration
 //   _x_   7.  do second registration
 //   _x_   8.  update a registration
-//   ___   9.  implement registration timeout
-//   ___ 10.
+//   _x_   9.  implement registration timeout
+//   _x_ 10. implement validations on listings
 
 //   _x_   ?.  add actor collateral to TCX, on-demand and/or during addScript (when??)
 
@@ -259,30 +259,32 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                             ""
                         )}
                         {error ? (
-                        <div
-                            className="error border rounded relative mb-4"
-                            role="alert"
-                            style={{ marginBottom: "0.75em" }}
-                        >
-                            {doNextAction}
-                            <strong className="font-bold">
-                                Whoops! &nbsp;&nbsp;
-                            </strong>
-                            <span className="block inline">{status}</span>
+                            <div
+                                className="error border rounded relative mb-4"
+                                role="alert"
+                                style={{ marginBottom: "0.75em" }}
+                            >
+                                {doNextAction}
+                                <strong className="font-bold">
+                                    Whoops! &nbsp;&nbsp;
+                                </strong>
+                                <span className="block inline">{status}</span>
 
-                            {showMoreInstructions}
-                        </div>
+                                {showMoreInstructions}
+                            </div>
                         ) : (
-                        <div
-                            className="status border rounded relative mb-4"
-                            role="banner"
-                            // style={{ marginBottom: "-7em" }}
-                        >
-                            {doNextAction}
-                            <span className="block sm:inline">{status}</span>
+                            <div
+                                className="status border rounded relative mb-4"
+                                role="banner"
+                                // style={{ marginBottom: "-7em" }}
+                            >
+                                {doNextAction}
+                                <span className="block sm:inline">
+                                    {status}
+                                </span>
 
-                            {showMoreInstructions}
-                        </div>
+                                {showMoreInstructions}
+                            </div>
                         )}
                     </>
                 )) ||
@@ -484,7 +486,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             console.warn(
                 "suppressing redundant wallet connect, already pending"
             );
-            
+
             return this.connectingWallet;
         }
 
@@ -498,12 +500,19 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         const handle: helios.Cip30Handle = await connecting;
 
         const networkName = networkNames[await handle.getNetworkId()];
+        if (networkName !== "preprod") {
+            return this.updateState(
+                `This application is only released on the preprod testnet for now.  Please switch to a preprod wallet.`,
+                { error: true }
+            );
+        }
         if (this.bf.networkName !== networkName) {
             //! checks that wallet network matches network params / bf
             this.updateState(
                 `wallet network mismatch; expected ${this.bf.networkName}, wallet ${networkName}`,
                 { error: true }
             );
+            return
         }
         const wallet = new helios.Cip30Wallet(handle);
 

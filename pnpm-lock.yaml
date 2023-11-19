@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@docsearch/react': ^3.2.1
-  '@donecollectively/stellar-contracts': ../../stellar-contracts
+  '@donecollectively/stellar-contracts': git://github.com/donecollectively/stellar-contracts#v0.8.1
   '@headlessui/react': ^1.7.2
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6
@@ -53,7 +53,7 @@ dependencies:
   tailwindcss: 3.3.5
 
 devDependencies:
-  '@donecollectively/stellar-contracts': link:../../stellar-contracts
+  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/f262954121034cd3fbfb80f8816b19d9a337f587
   '@types/react': 18.2.22
   eslint: 8.26.0
   eslint-config-next: 13.0.2_gsb724fc5bwv46dk2ugeyfyj44
@@ -3340,4 +3340,12 @@ packages:
   /yocto-queue/1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+    dev: true
+
+  github.com/donecollectively/stellar-contracts/f262954121034cd3fbfb80f8816b19d9a337f587:
+    resolution: {tarball: https://codeload.github.com/donecollectively/stellar-contracts/tar.gz/f262954121034cd3fbfb80f8816b19d9a337f587}
+    name: '@donecollectively/stellar-contracts'
+    version: 0.8.1
+    dependencies:
+      semver: 7.5.3
     dev: true

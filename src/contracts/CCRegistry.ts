@@ -39,14 +39,16 @@ export type RegisteredCredentialOnchain = {
 export type RegisteredCredential = {
     credType: string;
     credName: string;
-    credSummary: string;
+    credDesc: string;
     credIssuerDID: string;
     issuerName: string;
-    credDesc: string;
     expectations: string[];
     issuingGovInfo: string;
-    issuancePlatform? : string;
-    issuanceUrl? : string;
+    createdAt: bigint;
+    updatedAt: bigint;
+    expiresAt: bigint;
+    issuancePlatform : string;
+    issuanceUrl : string;
 };
 
 type credId = RegisteredCredentialOnchain["credAuthority"]["uutName"];
@@ -86,7 +88,7 @@ export class CCRegistry extends DefaultCapo {
     }
 
     @datum
-    mkDatumRegisteredCredential<T extends RegisteredCredentialOnchain>(d: T): InlineDatum {
+    mkDatumRegisteredCredential<T extends RegisteredCredentialCreate | RegisteredCredentialUpdated>(d: T): InlineDatum {
         //!!! todo: make it possible to type these datum helpers more strongly
         //  ... at the interface to Helios
         console.log("--> mkDatumCharter", d);
@@ -96,7 +98,17 @@ export class CCRegistry extends DefaultCapo {
 
         //@ts-expect-error can't seem to tell the the Updated alternative actually does have this attribut,
         //    ... just because the Create alternative does not...
-        const rec = d.updated || d.cred;
+        const rec = d.updated || d.cred as RegisteredCredential
+
+        //@ts-expect-error
+        if (d.updated) {
+            rec.createdAt = d.cred.createdAt
+            rec.updatedAt = Date.now();
+        } else {
+            rec.createdAt = Date.now();
+            rec.updatedAt = 0n;
+        }
+        rec.expiresAt = Date.now() + ( 364 * 24 * 60 * 60 * 1000 );
         const {
             credType,
             credName,
@@ -104,7 +116,12 @@ export class CCRegistry extends DefaultCapo {
             credIssuerDID,
             issuerName,
             expectations,
-            issuingGovInfo,
+            issuingGovInfo,            
+            issuancePlatform,
+            issuanceUrl,
+            createdAt,
+            updatedAt,
+            expiresAt,
         } = rec
 
         const credAuthority = this.mkOnchainDelegateLink(d.credAuthority);
@@ -117,7 +134,12 @@ export class CCRegistry extends DefaultCapo {
             issuerName,
             expectations,
             issuingGovInfo,
-            new Map()
+            issuancePlatform,
+            issuanceUrl,
+            new Map(),
+            createdAt,
+            updatedAt,
+            expiresAt,
         );
         const t = new hlRegisteredCredential(credAuthority, credStruct);
         debugger;
@@ -278,7 +300,7 @@ export class CCRegistry extends DefaultCapo {
      *
      * The resulting data structure includes the actual on-chain data
      * as well as the `id` actually found and the `utxo` parsed, for ease
-     * of updates via {@link CCRegistry.mkTxnUpdatingCredEntry}
+     * of updates via {@link CCRegistry.mkTxnUpdatingRegistryEntry}
      *
      * @param utxo - a UTxO having a registry-entry datum, such as found with {@link CCRegistry.findRegistryUtxo}
      * @public
@@ -344,13 +366,14 @@ export class CCRegistry extends DefaultCapo {
      * @public
      **/
     @txn
-    async mkTxnUpdatingCredEntry(
+    async mkTxnUpdatingRegistryEntry(
         credForUpdate: RegisteredCredentialUpdated
     ) : Promise<StellarTxnContext<any>> {
         const {
             // id,
             utxo: currentUtxo,
             credAuthority,
+            cred,
             updated,
         } = credForUpdate;
 

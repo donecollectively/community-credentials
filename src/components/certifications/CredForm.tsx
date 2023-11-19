@@ -12,7 +12,8 @@ import {
     RegisteredCredentialForUpdate,
 } from "../../contracts/CCRegistry.js";
 import { Prose } from "../Prose.jsx";
-import head from "next/head.js";  const Head = head.default;
+import head from "next/head.js";
+const Head = head.default;
 
 import { TxOutput, Wallet, dumpAny } from "@donecollectively/stellar-contracts";
 import { credRegistryProps } from "./sharedPropTypes.js";
@@ -20,16 +21,16 @@ import { CertsPage } from "../../pages/certifications/[[...args]].jsx";
 import { NextRouter } from "next/router.js";
 import { CredView } from "./CredView.jsx";
 
-type stateUpdaterFunc = CertsPage["updateState"]
+type stateUpdaterFunc = CertsPage["updateState"];
 type propsType = {
     cred?: RegisteredCredentialForUpdate;
     create?: boolean;
-    updateState: stateUpdaterFunc
-    refresh: Function,
-    router: NextRouter,
+    updateState: stateUpdaterFunc;
+    refresh: Function;
+    router: NextRouter;
     onSave: Function;
     onClose: Function;
-} & credRegistryProps
+} & credRegistryProps;
 
 type stateType = {
     modified: boolean;
@@ -43,32 +44,34 @@ type FieldProps = {
     fn: string;
     as?: React.ElementType;
     rows?: number;
-    options? : string[];
+    options?: string[];
     placeholder?: string;
     label: string;
     defaultValue: string;
-    style? : Record<string,any>;
-    tableCellStyle? : Record<string,any>;
+    style?: Record<string, any>;
+    tableCellStyle?: Record<string, any>;
     helpText: string;
     index?: number;
     onChange: ChangeEventHandler<HTMLInputElement>;
 };
 
 const testCredInfo = {
-// first - DEMU
-    credDesc: "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
+    // first - DEMU
+    credDesc:
+        "Certifies a person's knowledge and ability to operate DEMU's Munode and administer the delegations and other music-related activities",
     credName: "DEMU Certified Node Operator",
-    credSummary: "Certifies administrative and technical understanding of operating Munode",
+    // credSummary: "Certifies administrative and technical understanding of operating Munode",
     credType: "skill",
     expectations: [
         "has a practical understanding of general unix system administration",
         "can operate a nodejs-based service, including handling of version upgrades",
         "has learned about delegation and music-inventory mechanics of DEMU's content network",
-        "owns a $DEMU.munodeOperator token"
+        "owns a $DEMU.munodeOperator token",
     ],
     issuerName: "DEMU",
-    issuingGovInfo: "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate.",
-
+    issuingGovInfo:
+        "Candidates will attend a node-operator training program and get their Munode running on testnet.\n\nAfter they demonstrate music-inventory delegation activities, DEMU staff will issue the certificate.",
+    issuancePlatform: "ATALA Prism",
     // credName: `Sample ${new Date().toUTCString()}`,
     // credDesc: "test description",
     // credSummary: "tester",
@@ -78,7 +81,6 @@ const testCredInfo = {
     // issuingGovInfo: "hi!",
     // credIssuerDID: "n/a",
 };
-
 
 const buttonStyle = {
     padding: "0.75em",
@@ -102,18 +104,18 @@ type fieldOptions =
           placeholder?: string;
           defaultValue?: string;
           rows?: number;
-          style? : Record<string,any>,
-          tableCellStyle? : Record<string,any>,
-          options? : string [];
-          type?: "textarea" | "input" | "select" ;
+          style?: Record<string, any>;
+          tableCellStyle?: Record<string, any>;
+          options?: string[];
+          type?: "textarea" | "input" | "select";
       }
     | undefined;
 
-let mountCount = 0
+let mountCount = 0;
 
 export class CredForm extends React.Component<propsType, stateType> {
     form = createRef<HTMLFormElement>();
-    i : number
+    i: number;
     constructor(props) {
         super(props);
         this.i = mountCount += 1;
@@ -131,9 +133,12 @@ export class CredForm extends React.Component<propsType, stateType> {
                 // expectations: ["", ""],
             } as RegisteredCredential);
         await new Promise((res) => {
-            this.setState({
-                current,
-            }, res as any)
+            this.setState(
+                {
+                    current,
+                },
+                res as any
+            );
         });
         if (this._unmounting) return;
 
@@ -143,7 +148,7 @@ export class CredForm extends React.Component<propsType, stateType> {
             const minter = await credsRegistry.getMintDelegate();
             // tcx = await credsRegistry.mkTxnCreatingRegistryEntry(testCredInfo);
             // console.warn(dumpAny(tcx));
-            
+
             // await credsRegistry.submit(tcx);
         } catch (error) {
             console.error(error.stack);
@@ -151,7 +156,7 @@ export class CredForm extends React.Component<propsType, stateType> {
             this.setState({ error: error.message });
         }
     }
-    _unmounting? : true
+    _unmounting?: true;
     componentWillUnmount(): void {
         // console.error(`UNMOUNTing CredForm ${this.i}`)
         // this._unmounting = true;
@@ -161,11 +166,7 @@ export class CredForm extends React.Component<propsType, stateType> {
         const { current: rec, modified, error } = this.state || {};
         const { cred, create, onClose, onSave, credsRegistry } = this.props;
         if (!rec) return ""; //wait for didMount
-        const showTitle = (
-            <>
-                {create && "Creating"} Credential Listing
-            </>
-        );
+        const showTitle = <>{create && "Creating"} Credential Listing</>;
         let sidebarContent;
         {
             if ("undefined" == typeof window) {
@@ -257,6 +258,7 @@ export class CredForm extends React.Component<propsType, stateType> {
                         onSubmit={this.save}
                         style={{
                             padding: "0.75em",
+                            fontSize: "85%",
                         }}
                     >
                         <table>
@@ -264,20 +266,20 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 {this.field("Credential Type", "credType", {
                                     type: "select",
                                     options: [
-                                        "person", 
-                                        "skill", 
-                                        "experience", 
+                                        "person",
+                                        "skill",
+                                        "experience",
                                         "training cert",
-                                        "aptitude", 
-                                        "other"
+                                        "aptitude",
+                                        "other",
                                     ],
                                     tableCellStyle: {
                                         padding: "0.25em",
                                         // backgroundColor: "#142281e7"
                                     },
                                     style: {
-                                        backgroundColor: "#142281e7"
-                                    }
+                                        backgroundColor: "#142281e7",
+                                    },
                                 })}
                                 {this.field("Credential Name", "credName", {
                                     placeholder: "Short onscreen label",
@@ -290,6 +292,27 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 {this.field("Issuing Entity DID", "credDID", {
                                     placeholder: "e.g. did:prism: ...",
                                 })}
+                                {this.field(
+                                    "Issuance Platform",
+                                    "issuancePlatform",
+                                    {
+                                        type: "select",
+                                        options: ["ATALA Prism", "other"],
+                                        tableCellStyle: {
+                                            padding: "0.25em",
+                                            // backgroundColor: "#142281e7"
+                                        },
+                                        style: {
+                                            backgroundColor: "#142281e7",
+                                        },
+                                    }
+                                )}
+                                {this.field(
+                                    "Issuance URL (optional)",
+                                    "issuanceUrl",
+                                    {}
+                                )}
+
                                 {this.field("Expectations", "expectations", {
                                     helpText:
                                         "credential holders will have demonstrated these skills, capabilities, or evidence",
@@ -299,8 +322,11 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 {this.field(
                                     "Governance Details",
                                     "issuingGovInfo",
-                                    { type: "textarea", rows: 8,
-                                        helpText: "describe how you govern the issuance of this credential"
+                                    {
+                                        type: "textarea",
+                                        rows: 8,
+                                        helpText:
+                                            "describe how you govern the issuance of this credential",
                                     }
                                 )}
                                 <tr>
@@ -351,14 +377,24 @@ export class CredForm extends React.Component<propsType, stateType> {
                             </tfoot>
                         </table>
                     </form>
-                    {modified && <>
-                        <h3 id="preview" className="mt-0 mb-2 text-slate-700">Preview</h3>
-                        <hr className="not-prose mb-2" />
-                        <CredView {...{
-                            cred:{...cred, cred: rec},                            
-                             credsRegistry
-                        }} preview />
-                    </>}
+                    {modified && (
+                        <>
+                            <h3
+                                id="preview"
+                                className="mt-0 mb-2 text-slate-700"
+                            >
+                                Preview
+                            </h3>
+                            <hr className="not-prose mb-2" />
+                            <CredView
+                                {...{
+                                    cred: { ...cred, cred: rec },
+                                    credsRegistry,
+                                }}
+                                preview
+                            />
+                        </>
+                    )}
                 </Prose>
             </div>
         );
@@ -396,9 +432,9 @@ export class CredForm extends React.Component<propsType, stateType> {
             );
         const items = rec[fn];
         if (!!items.at(-1)) {
-            items.push("")
+            items.push("");
         }
-        
+
         return (
             <>
                 {items.map((oneValue, index) => {
@@ -436,7 +472,7 @@ export class CredForm extends React.Component<propsType, stateType> {
         } = this.state;
 
         const f = this.form.current;
-        const updatedCred = this.capture(f)
+        const updatedCred = this.capture(f);
         if (updatedCred.expectations.at(-1)) updatedCred.expectations.push("");
 
         this.setState({
@@ -453,50 +489,62 @@ export class CredForm extends React.Component<propsType, stateType> {
         const exp = formData.getAll("expectations") as string[];
 
         updatedCred.expectations = exp;
-        return updatedCred
+        return updatedCred;
     }
 
     async save(e: React.SyntheticEvent) {
         const { current: rec } = this.state;
-        const { cred: credForUpdate, refresh, updateState, credsRegistry, router, create, wallet } = this.props;
+        const {
+            cred: credForUpdate,
+            refresh,
+            updateState,
+            credsRegistry,
+            router,
+            create,
+            wallet,
+        } = this.props;
         e.preventDefault();
         e.stopPropagation();
 
         const form = e.target as HTMLFormElement;
-        const updatedCred = this.capture(form)
+        const updatedCred = this.capture(form);
 
         while (!updatedCred.expectations.at(-1)) updatedCred.expectations.pop();
 
         try {
-            const txnDescription = `${create ? "creation" : "update"} txn`
-            updateState(`preparing ${txnDescription}`, {progressBar: true})
+            const txnDescription = `${create ? "creation" : "update"} txn`;
+            updateState(`preparing ${txnDescription}`, { progressBar: true });
             const tcx = create
                 ? await credsRegistry.mkTxnCreatingRegistryEntry(updatedCred)
-                : await credsRegistry.mkTxnUpdatingCredEntry({
-                    ... credForUpdate,
-                    updated: updatedCred
+                : await credsRegistry.mkTxnUpdatingRegistryEntry({
+                      ...credForUpdate,
+                      updated: updatedCred,
                   });
-            console.warn(dumpAny(tcx))
-            updateState(`sending the ${txnDescription} to your wallet for approval`,
-            {
-                progressBar: true
-            })
+            console.warn(dumpAny(tcx));
+            updateState(
+                `sending the ${txnDescription} to your wallet for approval`,
+                {
+                    progressBar: true,
+                }
+            );
             const minDelay = new Promise((res) => setTimeout(res, 2000));
 
             await credsRegistry.submit(tcx);
-            await minDelay
+            await minDelay;
             updateState(`submitting the ${txnDescription} to the network`);
             refresh().then(async () => {
-                updateState(`The update will take few moments before it's confirmed`);
-                await new Promise(res => setTimeout(res, 3000))
-                updateState("")
-            })
-            router.push("/certifications")
+                updateState(
+                    `The update will take few moments before it's confirmed`
+                );
+                await new Promise((res) => setTimeout(res, 3000));
+                updateState("");
+            });
+            router.push("/certifications");
             // this.setState({modified: true})
         } catch (error) {
             console.error(error.stack);
             debugger;
-            updateState( error.message, { error: true });
+            updateState(error.message, { error: true });
         }
     }
 }
@@ -521,17 +569,23 @@ function Field({
     let value = rVal;
 
     if ("undefined" !== typeof index)
-        value = rec[fn][index] || (rec[fn][index] = "");    
-        
+        value = rec[fn][index] || (rec[fn][index] = "");
+
     const isOnlyOrLastRow = !Array.isArray(rVal) || index + 1 == rVal.length;
     const noBottomBorder = {
         style: { borderBottom: "none" },
     };
     const arrayTableStyle = isOnlyOrLastRow ? {} : noBottomBorder;
-    const renderedOptions = options ? options.map(s => {
-        const selected = value==s ? {selected:true} : {};
-        return <option value={s} {...selected}>{s}</option>
-    }) : undefined
+    const renderedOptions = options
+        ? options.map((s) => {
+              const selected = value == s ? { selected: true } : {};
+              return (
+                  <option value={s} {...selected}>
+                      {s}
+                  </option>
+              );
+          })
+        : undefined;
     return (
         <tr {...arrayTableStyle}>
             <th>{!!index || <label htmlFor={fieldId}> {label}</label>}</th>

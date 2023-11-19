@@ -131,9 +131,9 @@ export class CredView extends React.Component<propsType, stateType> {
                 <div>
                     <h4>
                         Certificate Description{" "}
-                        <span className="text-slate-700">
+                        {/* <span className="text-slate-700">
                             {cred.credSummary}
-                        </span>
+                        </span> */}
                     </h4>
                     <Markdoc content={cred.credDesc} />
                     <h4>Expectations of a Credential Holder</h4>
@@ -163,7 +163,7 @@ export class CredView extends React.Component<propsType, stateType> {
 
     possibleEditButton() {
         const {walletUtxos, credsRegistry, cred} = this.props;
-        if (!walletUtxos) return "no wallet utxos"; // undefined
+        if (!walletUtxos) return "...loading wallet utxos..."; // undefined
         // const delegateToken = credsRegistry.tvForDelegate(cred.credAuthority)
         const tokenPredicate = credsRegistry.mkDelegatePredicate(cred.credAuthority)
         const foundToken = walletUtxos.find(tokenPredicate)

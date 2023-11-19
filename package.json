@@ -1,7 +1,6 @@
 {
     "name": "w3-community-certs",
-    "version": "0.1.0",
-    "private": true,
+    "version": "0.4.0",
     "scripts": {
         "dev": "next dev -p 3040",
         "build": "next build",
@@ -28,6 +27,7 @@
     "browserslist": "defaults, not ie <= 11",
     "dependencies": {
         "@docsearch/react": "^3.2.1",
+        "@donecollectively/stellar-contracts": "git://github.com/donecollectively/stellar-contracts#v0.8.1",
         "@headlessui/react": "^1.7.2",
         "@markdoc/markdoc": "0.1.7",
         "@markdoc/next.js": "0.1.6",
@@ -48,7 +48,6 @@
         "tailwindcss": "^3.3.5"
     },
     "devDependencies": {
-        "@donecollectively/stellar-contracts": "../../stellar-contracts",
         "@types/react": "18.2.22",
         "eslint": "8.26.0",
         "eslint-config-next": "13.0.2",
