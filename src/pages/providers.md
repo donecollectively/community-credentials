@@ -22,5 +22,5 @@ Andamio is building an exciting set of services centered on project-based learni
 
 ## Getting Listed
 
-For now, please check out our Github and submit a PR or an Issue if you want to update your listing or add your organization to this page.
+For now, please check out [our Github](https://github.com/donecollectively/community-credentials/) and submit a PR or an Issue if you want to update your listing or add your organization to this page.
 
