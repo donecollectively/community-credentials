@@ -10,14 +10,19 @@ export const navigation = [
         title: "Communities and Certifications",
         links: [
             { title: "Certifications", href: "/certifications" },
+            { title: "Certification Providers", href: "/providers" },
+            { title: "Cert Registry Guide", href: "/registry-guide" },
+            { title: "Tech setup", href: "/tech-setup" },
             // { title: "Communities", href: "/communities" },
         ],
     },
     {
-        title: "More About Us (TODO)",
+        title: "More",
         links: [
-            { title: "Web 3 Association", href: "/page3" },
-            { title: "LearnerShape", href: "/page4" },
+
+            { title: "About Verifiable Credentials", href: "/about-credentials" },
+            // { title: "LearnerShape", href: "/about-learnershape" },
+            // { title: "Stellar Contracts", href: "/cardano-stellar-contracts" },
         ],
     },
 ]
