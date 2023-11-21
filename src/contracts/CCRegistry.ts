@@ -47,8 +47,8 @@ export type RegisteredCredential = {
     createdAt: bigint;
     updatedAt: bigint;
     expiresAt: bigint;
-    issuancePlatform : string;
-    issuanceUrl : string;
+    issuancePlatform: string;
+    issuanceUrl: string;
 };
 
 type credId = RegisteredCredentialOnchain["credAuthority"]["uutName"];
@@ -61,11 +61,9 @@ export type RegisteredCredentialForUpdate = RegisteredCredentialOnchain & {
     utxo: TxInput;
     updated?: RegisteredCredential;
 };
-export type RegisteredCredentialUpdated = { 
+export type RegisteredCredentialUpdated = {
     updated: RegisteredCredential;
-} & RegisteredCredentialForUpdate 
-
-
+} & RegisteredCredentialForUpdate;
 
 export class CCRegistry extends DefaultCapo {
     get specializedCapo() {
@@ -88,7 +86,9 @@ export class CCRegistry extends DefaultCapo {
     }
 
     @datum
-    mkDatumRegisteredCredential<T extends RegisteredCredentialCreate | RegisteredCredentialUpdated>(d: T): InlineDatum {
+    mkDatumRegisteredCredential<
+        T extends RegisteredCredentialCreate | RegisteredCredentialUpdated
+    >(d: T): InlineDatum {
         //!!! todo: make it possible to type these datum helpers more strongly
         //  ... at the interface to Helios
         console.log("--> mkDatumCharter", d);
@@ -98,17 +98,17 @@ export class CCRegistry extends DefaultCapo {
 
         //@ts-expect-error can't seem to tell the the Updated alternative actually does have this attribut,
         //    ... just because the Create alternative does not...
-        const rec = d.updated || d.cred as RegisteredCredential
+        const rec = d.updated || (d.cred as RegisteredCredential);
 
         //@ts-expect-error
         if (d.updated) {
-            rec.createdAt = d.cred.createdAt
+            rec.createdAt = d.cred.createdAt;
             rec.updatedAt = Date.now();
         } else {
             rec.createdAt = Date.now();
             rec.updatedAt = 0n;
         }
-        rec.expiresAt = Date.now() + ( 364 * 24 * 60 * 60 * 1000 );
+        rec.expiresAt = Date.now() + 364 * 24 * 60 * 60 * 1000;
         const {
             credType,
             credName,
@@ -116,13 +116,13 @@ export class CCRegistry extends DefaultCapo {
             credIssuerDID,
             issuerName,
             expectations,
-            issuingGovInfo,            
+            issuingGovInfo,
             issuancePlatform,
             issuanceUrl,
             createdAt,
             updatedAt,
             expiresAt,
-        } = rec
+        } = rec;
 
         const credAuthority = this.mkOnchainDelegateLink(d.credAuthority);
         debugger;
@@ -139,7 +139,7 @@ export class CCRegistry extends DefaultCapo {
             new Map(),
             createdAt,
             updatedAt,
-            expiresAt,
+            expiresAt
         );
         const t = new hlRegisteredCredential(credAuthority, credStruct);
         debugger;
@@ -184,7 +184,7 @@ export class CCRegistry extends DefaultCapo {
     async mkTxnCreatingRegistryEntry<TCX extends StellarTxnContext<any>>(
         cred: RegisteredCredential,
         iTcx?: TCX
-    ) : Promise<TCX> {
+    ): Promise<TCX> {
         // to make a new cred entry, we must:
         //  - make a UUT for the credential listing (in-contract datum)
         //  - ... and a UUT for administrative authority on that credential
@@ -244,9 +244,9 @@ export class CCRegistry extends DefaultCapo {
     @partialTxn
     txnReceiveRegistryEntry<TCX extends StellarTxnContext<any>>(
         tcx: TCX,
-        cred: RegisteredCredentialForUpdate | RegisteredCredentialCreate,
-    ) : TCX {
-        debugger
+        cred: RegisteredCredentialForUpdate | RegisteredCredentialCreate
+    ): TCX {
+        debugger;
         const credMinValue = this.mkMinTv(this.mph, cred.id);
         const utxo = new TxOutput(
             this.address,
@@ -254,9 +254,7 @@ export class CCRegistry extends DefaultCapo {
             this.mkDatumRegisteredCredential(cred)
         );
 
-        return tcx.addOutput(
-              utxo  
-        );
+        return tcx.addOutput(utxo);
     }
     // Address.fromHash(cred.credAuthority.delegateValidatorHash),
 
@@ -305,8 +303,9 @@ export class CCRegistry extends DefaultCapo {
      * @param utxo - a UTxO having a registry-entry datum, such as found with {@link CCRegistry.findRegistryUtxo}
      * @public
      **/
-    async readRegistryEntry(utxo: TxInput) 
-    : Promise<RegisteredCredentialForUpdate | undefined> {
+    async readRegistryEntry(
+        utxo: TxInput
+    ): Promise<RegisteredCredentialForUpdate | undefined> {
         const a = utxo.value.assets.getTokenNames(this.mph);
         const credId = a
             .map((x) => helios.bytesToText(x.bytes))
@@ -322,7 +321,7 @@ export class CCRegistry extends DefaultCapo {
             ...result,
             utxo,
             id: credId,
-        }
+        };
     }
 
     /**
@@ -368,7 +367,7 @@ export class CCRegistry extends DefaultCapo {
     @txn
     async mkTxnUpdatingRegistryEntry(
         credForUpdate: RegisteredCredentialUpdated
-    ) : Promise<StellarTxnContext<any>> {
+    ): Promise<StellarTxnContext<any>> {
         const {
             // id,
             utxo: currentUtxo,
@@ -382,11 +381,10 @@ export class CCRegistry extends DefaultCapo {
             new StellarTxnContext<any>()
         );
 
-        const tcx2 = tcx.attachScript(this.compiledScript).addInput(
-            currentUtxo,
-            this.activityUpdatingCredential()
-        );
-        return this.txnReceiveRegistryEntry(tcx2, credForUpdate)
+        const tcx2 = tcx
+            .attachScript(this.compiledScript)
+            .addInput(currentUtxo, this.activityUpdatingCredential());
+        return this.txnReceiveRegistryEntry(tcx2, credForUpdate);
     }
 
     requirements() {
@@ -409,8 +407,8 @@ export class CCRegistry extends DefaultCapo {
                     "allows anyone to post information about a credential, for listing in the registry",
                     "creates validated credential listings",
                     "enforces an automatic expiration for every listing",
-                    "creates a policy-delegate to govern each listing, in a separate contract",
-                    "a listing can be freshened by its policy-delegate",
+                    "issues a linked authority token for the creator's wallet",
+                    "a listing can be freshened by the holder of the linked authority token",
                     "the registry's trustee group can govern listed credentials",
                 ],
             },
@@ -429,8 +427,7 @@ export class CCRegistry extends DefaultCapo {
                     ],
                     requires: [
                         "creates validated credential listings",
-                        "creates a policy-delegate to govern each listing, in a separate contract",
-                        "issues a Linked Interaction Token for the creator's wallet",
+                        "issues a linked authority token for the creator's wallet",
                     ],
                 },
 
@@ -440,7 +437,7 @@ export class CCRegistry extends DefaultCapo {
                 details: [
                     "Required fields must be filled, for a listing to be valid",
                     "Other validations may also be enforced",
-                    "Validation problems in mkTxnCreatingRegisteredCredential() should be made visible to the UI layer",
+                    "Validation problems in mkTxnCreatingRegistryEntry() should be made visible to the UI layer",
                     "It should be possible for people to experiment with credential listings even if they do not yet have an issuing service or dID",
                 ],
                 mech: [
@@ -451,7 +448,7 @@ export class CCRegistry extends DefaultCapo {
                 requires: [],
             },
 
-            "issues a Linked Interaction Token for the creator's wallet": {
+            "issues a linked authority token for the creator's wallet": {
                 purpose:
                     "to enable a person to easily connect in the future with their listings",
                 details: [
@@ -462,8 +459,8 @@ export class CCRegistry extends DefaultCapo {
                     "  ... or for interested people to use like a bookmark for that listing",
                 ],
                 mech: [
-                    "uses token name link:rcred-xxxxx, where xxxxx matches the rcred-  UUT identifier",
-                    "more detailed reqts TBD",
+                    "uses a token name 'link:regCred-xyz' linked to each regCred-xyz record",
+                    "requires the linked authority token for updating a regCred entry",
                 ],
                 requires: [],
             },
@@ -477,58 +474,41 @@ export class CCRegistry extends DefaultCapo {
                     "At that time, they may choose to freshen certain details of their listings also.",
                 ],
                 mech: [
-                    "expiration is 45 days, and may not be modified by the creator",
+                    "TEMP: expiration is 1 year",
+                    "TODO: initial expiration is 90 days, and may not be modified by the creator",
+                    "TODO: after 2/3 of the validity period, the validity can be extended by 1.6x, max 1y",
                     "queries for active listings SHOULD filter out past-expiry records",
                 ],
-                requires: ["a listing can be freshened by its policy-delegate"],
+                requires: [
+                    "a listing can be freshened by the holder of the linked authority token",
+                ],
             },
 
             "a listing can be revoked": {
                 purpose:
                     "for proactive assurance of freshness and quality of the listing and the registry overall",
                 details: [
-                    "The registry's trustees and a listing's policy-delegate can revoke a listing.",
+                    "The registry's operator(s) and a listing's owner can revoke a listing.",
                     "A revoked listing MUST NOT be considered an active item in the registry.",
                 ],
                 mech: [
-                    "A revocation is allowed by authority of the policy-delegate's UUT",
-                    "A revocation is allowed by authority of the registry's trustees",
+                    "A revocation is allowed by authority of the regCred's linked authority token",
+                    "A revocation is allowed by authority of the registry's operators",
                 ],
                 requires: [
                     "the registry's trustee group can govern listed credentials",
-                    "creates a policy-delegate to govern each listing, in a separate contract",
+                    "issues a linked authority token for the creator's wallet",
                 ],
             },
 
-            "creates a policy-delegate to govern each listing, in a separate contract":
+            "a listing can be freshened by the holder of the linked authority token":
                 {
                     purpose:
-                        "to keep the main contract simple and allow richness of delegates",
-                    details: [
-                        "The main contract allows updates to listings on delegated authority of a UUT",
-                        "That UUT is assigned to a known contract implementing an authorization policy",
-                        "Other contracts could be used as delegates.",
-                        "The delegate contract can have unlimited policy richness without affecting the main contract.",
-                        "The delegate contract is self-sovereign with regard to its own authority",
-                        "Note that the main contract retains governance authority, guarding for data quality and against abuse.",
-                        "The Stellar contract class records the delegate contract address, ",
-                        "  ... creating positive linkage to the on-chain delegate, ",
-                        "  ... and allowing off-chain resolution of txn-building code for it",
-                    ],
-                    mech: [
-                        "authority is granted IFF the RegCredUUT is spendable",
-                        "the contract address of the delegate is stored in the listing",
-                    ],
+                        "allowing update and preventing the expiration of a listing",
+                    details: [],
+                    mech: [],
                     requires: [],
                 },
-
-            "a listing can be freshened by its policy-delegate": {
-                purpose:
-                    "allowing update and preventing the expiration of a listing",
-                details: [],
-                mech: [],
-                requires: [],
-            },
 
             "the registry's trustee group can govern listed credentials": {
                 purpose: "to guard for quality and against abuse",
