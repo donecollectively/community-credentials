@@ -12,10 +12,9 @@ A provider may also provide a technical platform allowing other organizations to
 
 ## Credential Providers
 
-
 ### LearnerShape
 
-LearnerShape provides their open-source SkillsGraph platform in both source form, as well as an operational hosted instance they run as a service to the community service.  Learn more about [LearnerShape and SkillsGraph] (https://learnershape.gitbook.io/learnershape-skillsgraph/) here.
+LearnerShape provides their open-source SkillsGraph platform in both source form, as well as an operational hosted instance they run as a service to the community service.  Learn more about [LearnerShape and SkillsGraph](https://learnershape.gitbook.io/learnershape-skillsgraph/) here.
 
 ### Andamio
 
