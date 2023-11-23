@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false,
-    output: "standalone",
+    output: "export",
     basePath: '/community-credentials',
     pageExtensions: ["js", "jsx", "tsx", "md"],
     experimental: {
