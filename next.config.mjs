@@ -10,6 +10,7 @@ const nextConfig = {
     reactStrictMode: false,
     output: "export",
     basePath: '/community-credentials',
+    trailingSlash: true,
     pageExtensions: ["js", "jsx", "tsx", "md"],
     experimental: {
         scrollRestoration: true,
