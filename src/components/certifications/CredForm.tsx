@@ -17,7 +17,7 @@ const Head = head.default;
 
 import { TxOutput, Wallet, dumpAny } from "@donecollectively/stellar-contracts";
 import { credRegistryProps } from "./sharedPropTypes.js";
-import { CertsPage } from "../../pages/certifications/[[...args]].jsx";
+import { CertsPage } from "../../pages/certifications/[...args].jsx";
 import { NextRouter } from "next/router.js";
 import { CredView } from "./CredView.jsx";
 

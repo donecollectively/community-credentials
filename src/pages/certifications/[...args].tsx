@@ -40,13 +40,13 @@ import {
     RegisteredCredentialForUpdate,
     RegisteredCredentialOnchain,
 } from "../../contracts/CCRegistry.js";
-import { CredForm } from "../../components/certifications/CredForm.jsx";
-import { CredsList } from "../../components/certifications/CredsList.jsx";
-import { CredView } from "../../components/certifications/CredView.jsx";
-import { Button } from "../../components/Button.jsx";
-import { ClientSideOnly } from "../../components/ClientSideOnly.jsx";
-import { inPortal } from "../../inPortal.jsx";
-import { Progress } from "../../components/Progress.jsx";
+import { CredForm } from "../../components/certifications/CredForm.js";
+import { CredsList } from "../../components/certifications/CredsList.js";
+import { CredView } from "../../components/certifications/CredView.js";
+import { Button } from "../../components/Button.js";
+import { ClientSideOnly } from "../../components/ClientSideOnly.js";
+import { inPortal } from "../../inPortal.js";
+import { Progress } from "../../components/Progress.js";
 
 // Helios types
 const { BlockfrostV0, Cip30Wallet, TxChain } = helios;

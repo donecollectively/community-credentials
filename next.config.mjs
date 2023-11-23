@@ -10,7 +10,7 @@ const nextConfig = {
     reactStrictMode: false,
     output: "standalone",
     basePath: '/community-credentials',
-    // trailingSlash: true,
+    trailingSlash: true,
     pageExtensions: ["js", "jsx", "tsx", "md"],
     experimental: {
         scrollRestoration: true,
@@ -20,11 +20,6 @@ const nextConfig = {
         unoptimized: true,
     },
 
-    rewrites: async () => [
-        { source: '/community-credentials/certifications/', destination: '/community-credentials/certifications' },
-        { source: '/certifications/', destination: '/certifications' }
-    ],
-    
     webpack: (config, options) => {
         const { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack } =
             options;
