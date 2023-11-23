@@ -7,12 +7,10 @@ export const navigation = [
         ],
     },
     {
-        title: "Communities and Certifications",
+        title: "Certifications and Providers",
         links: [
             { title: "Certifications", href: "/certifications" },
             { title: "Certification Providers", href: "/providers" },
-            { title: "Cert Registry Guide", href: "/registry-guide" },
-            { title: "Tech setup", href: "/tech-setup" },
             // { title: "Communities", href: "/communities" },
         ],
     },
@@ -21,6 +19,8 @@ export const navigation = [
         links: [
 
             { title: "About Verifiable Credentials", href: "/about-credentials" },
+            { title: "Cert Registry Guide", href: "/registry-guide" },
+            { title: "Tech setup", href: "/tech-setup" },
             // { title: "LearnerShape", href: "/about-learnershape" },
             // { title: "Stellar Contracts", href: "/cardano-stellar-contracts" },
         ],
