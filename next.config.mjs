@@ -21,7 +21,8 @@ const nextConfig = {
     },
 
     rewrites: async () => [
-        { source: '/community-credentials/', destination: '/community-credentials' }
+        { source: '/community-credentials/certifications/', destination: '/community-credentials/certifications' },
+        // { source: '/certifications/', destination: '/certifications' }
     ],
     
     webpack: (config, options) => {
