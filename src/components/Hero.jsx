@@ -61,7 +61,7 @@ export function Hero() {
                 by our communities on Cardano, and beyond
               </p>
               <div className="mt-8 flex gap-4 md:justify-center lg:justify-start">
-                <Button href="/community-credentials/certifications">Get started</Button>
+                <Button href="/certifications">Get started</Button>
                 {/* <Button href="/about" target="_blank" variant="secondary">
                    More about Us
                 </Button> */}

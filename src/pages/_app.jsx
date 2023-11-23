@@ -51,7 +51,7 @@ function collectHeadings(nodes, slugify = slugifyWithCounter()) {
 }
 
 export default function App({ Component, pageProps }) {
-    let { notProse = false } = Component;
+    let { notProse = false, nextPrev = true } = Component;
     let title = pageProps.markdoc?.frontmatter.title;
 
     let pageTitle =
@@ -83,7 +83,7 @@ export default function App({ Component, pageProps }) {
                     <meta name="description" content={description} />
                 )}
             </Head>
-            <Layout {...{ title, tableOfContents, notProse }}>
+            <Layout {...{ title, tableOfContents, notProse, nextPrev }}>
                 <Component {...pageProps} />
             </Layout>
         </>

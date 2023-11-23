@@ -136,13 +136,13 @@ function useTableOfContents(tableOfContents) {
     return currentSection;
 }
 
-export function Layout({ children, title, tableOfContents, notProse = false }) {
+export function Layout({ children, title, tableOfContents, notProse = false, nextPrev = true }) {
     let router = useRouter();
     let isHomePage = router.pathname === "/";
     let allLinks = navigation.flatMap((section) => section.links);
     let linkIndex = allLinks.findIndex((link) => link.href === router.pathname);
-    let previousPage = allLinks[linkIndex - 1];
-    let nextPage = allLinks[linkIndex + 1];
+    let previousPage = nextPrev && allLinks[linkIndex - 1];
+    let nextPage = nextPrev && allLinks[linkIndex + 1];
     let section = navigation.find((section) =>
         section.links.find((link) => link.href === router.pathname)
     );

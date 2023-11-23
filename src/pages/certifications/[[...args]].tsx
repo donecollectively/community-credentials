@@ -752,5 +752,9 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             this.setState(newState, resolve);
         });
     }
+    static nextPrev = false;
 }
-export default withRouter(CertsPage);
+const certsPageWithRouter = withRouter(CertsPage);
+//@ts-expect-error
+certsPageWithRouter.nextPrev = false
+export default certsPageWithRouter
