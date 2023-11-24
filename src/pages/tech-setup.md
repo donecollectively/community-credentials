@@ -12,15 +12,17 @@ A brief guide to your tech setup
 
 To register a credential entry on this site, you'll need to connect the preproduction testnet using the Eternl wallet.   We intend to support additional wallets in an upcoming release.
 
-If you're familiar with wallet setup on Cardano, just do what you know, connecting Eternl to the proprod network.
+If you're familiar with wallet setup on Cardano, just do what you know, connecting Eternl to the proprod network.  Be sure you're using their browser extension!
 
 ### Guided Setup
 
-If you need guidance on Eternl setup, we'll direct you to an article provided by the creators of the Eternl wallet. 
+If you need guidance on Eternl setup, we'll direct you to an article provided by the creators of the Eternl wallet, with three important notes:
 
-**Note** that this guide starts with the default ("mainnet") configuration - so be sure to click the purple "mainnet" indicator in the lower-right corner of Eternl, to select "preprod" - and then the detailed, step-by-step instructions on [this site](https://builtoncardano.com/blog/how-to-create-an-eternl-wallet) should serve you nicely.
+  1. Eternl's "web application" mode doesn't work with on-chain dApps, so you MUST use the dApp-connector-compatible BROWSER EXTENSION route.
+  2. This guide starts with the default ("mainnet") configuration - so be sure to click the purple "mainnet" indicator in the lower-right corner of Eternl, to select "preprod" - and then the detailed, step-by-step instructions on [this site](https://builtoncardano.com/blog/how-to-create-an-eternl-wallet) should serve you nicely.
+  3. BE SURE to **select the PREPROD testnet environment** and NOT THE DEFAULT "testnet" at this [faucet](https://docs.cardano.org/cardano-testnet/tools/faucet/) page, and paste your wallet address (from step-by-step guide at the link above).  Your test "funds" will arrive shortly.
 
-To fund your new wallet, **select the PREPROD testnet environment** at this [testnet faucet](https://docs.cardano.org/cardano-testnet/tools/faucet/) page, and paste your wallet address (from step-by-step guide at the link above).  Your test "funds" will arrive shortly.
+Remember to click the Plug icon to enable the wallet to connect to dApps, and you may need to send yourself 5 ADA to be used as collateral, as a one-time step in setup.
 
 ### Using an existing testnet wallet
 
