@@ -46,7 +46,7 @@ To register a credential entry on this site, you'll need to connect the preprodu
 
 ### Entering your credential details
 
-Start by clicking the List a Credential button on the [Certifications](/community-credentials/certifications/) page
+Start by clicking the List a Credential button on the [Certifications](/community-credentials/certifications) page
 
 #### Existing Credential Programs
 
