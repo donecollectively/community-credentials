@@ -36,6 +36,8 @@ type stateType = {
     modified: boolean;
     gen: number;
     error?: string;
+    submitting?: boolean;
+    problems: Record<string, string>;
     current: RegisteredCredential;
 };
 
@@ -52,8 +54,13 @@ type FieldProps = {
     tableCellStyle?: Record<string, any>;
     helpText: string;
     index?: number;
-    onChange: ChangeEventHandler<HTMLInputElement>;
+    validator?: Function;
+    fieldId: string;
+    problem?: string;
+    onChange: ChangeHandler;
 };
+
+type ChangeHandler = React.ChangeEventHandler<HTMLInputElement>;
 
 const testCredInfo = {
     expectations: [""],
@@ -108,6 +115,7 @@ type fieldOptions =
           rows?: number;
           style?: Record<string, any>;
           tableCellStyle?: Record<string, any>;
+          validator?: Function;
           options?: string[];
           type?: "textarea" | "input" | "select";
       }
@@ -138,6 +146,7 @@ export class CredForm extends React.Component<propsType, stateType> {
             this.setState(
                 {
                     current,
+                    problems: {},
                 },
                 res as any
             );
@@ -165,11 +174,18 @@ export class CredForm extends React.Component<propsType, stateType> {
     }
 
     render() {
-        const { current: rec, modified, error } = this.state || {};
+        const {
+            current: rec,
+            modified,
+            error,
+            submitting,
+            problems,
+        } = this.state || {};
         const { cred, create, onClose, onSave, credsRegistry } = this.props;
         if (!rec) return ""; //wait for didMount
         const showTitle = <>{create && "Creating"} Credential Listing</>;
         let sidebarContent;
+        const foundProblems = submitting && Object.keys(problems).length;
         {
             if ("undefined" == typeof window) {
                 sidebarContent = <div suppressHydrationWarning />;
@@ -285,12 +301,24 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 })}
                                 {this.field("Credential Name", "credName", {
                                     placeholder: "Short onscreen label",
+                                    validator(v) {
+                                        if (v.length < 10)
+                                            return "must be at least 10 characters";
+                                    },
                                 })}
                                 {this.field("Description", "credDesc", {
                                     type: "textarea",
                                     rows: 3,
+                                    validator(v) {
+                                        if (v.length < 40)
+                                            return "must be at least 40 characters";
+                                    },
                                 })}
-                                {this.field("Issuer Name", "issuerName")}
+                                {this.field("Issuer Name", "issuerName", {
+                                    validator(v) {
+                                        if (v.length < 4) return "too short";
+                                    },
+                                })}
                                 {this.field("Issuing Entity DID", "credDID", {
                                     placeholder: "e.g. did:prism: ...",
                                 })}
@@ -319,6 +347,10 @@ export class CredForm extends React.Component<propsType, stateType> {
                                     helpText:
                                         "credential holders will have demonstrated these skills, capabilities, or evidence",
                                     array: true,
+                                    validator(v, rec, arrayIndex) {
+                                        if (arrayIndex && !v.length) return; //non-first item can be empty
+                                        if (v.length < 10) return "too short";
+                                    },
                                     length: rec.expectations?.length,
                                 })}
                                 {this.field(
@@ -329,6 +361,10 @@ export class CredForm extends React.Component<propsType, stateType> {
                                         rows: 8,
                                         helpText:
                                             "describe how you govern the issuance of this credential",
+                                        validator(v) {
+                                            if (v.length < 100)
+                                                return "Please provide more detail (at least 100 characters)";
+                                        },
                                     }
                                 )}
                                 <tr>
@@ -349,8 +385,19 @@ export class CredForm extends React.Component<propsType, stateType> {
                                                         ? "Create"
                                                         : "Save Changes"}
                                                 </button>
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                See preview below
+                                                <div className="ml-4">
+                                                    {!!foundProblems && (
+                                                        <div className="text-[#f66]">
+                                                            Please fix{" "}
+                                                            {foundProblems}{" "}
+                                                            problem()s before
+                                                            proceeding
+                                                            <br />
+                                                        </div>
+                                                    )}
+
+                                                    <div>See preview below</div>
+                                                </div>
                                             </>
                                         )}
                                     </td>
@@ -403,23 +450,32 @@ export class CredForm extends React.Component<propsType, stateType> {
     }
 
     field(label: string, fn: string, options?: fieldOptions) {
-        const { current: rec } = this.state;
+        const { current: rec, problems, submitting } = this.state;
         const { 
             array, type: as = 'input',  
             options: selectOptions,
             style,
+            validator,            
             tableCellStyle,
             rows, helpText, placeholder, defaultValue, 
         } = options || {}; //prettier-ignore
 
-        if (!array)
+        if (!array) {
+            const fieldId = this.mkFieldId(fn);
+            captureProblems.call(this, fieldId, rec[fn]);
+
+            const showProblem = submitting
+                ? { problem: problems[fieldId] }
+                : {};
             return (
                 <Field
                     key={fn}
+                    {...showProblem}
                     {...{
                         rec,
                         as,
                         fn,
+                        fieldId,
                         label,
                         placeholder,
                         defaultValue,
@@ -428,10 +484,13 @@ export class CredForm extends React.Component<propsType, stateType> {
                         rows,
                         style,
                         tableCellStyle,
-                        onChange: this.changed,
+                        onChange: validator
+                            ? this.mkChangeValidator(fieldId, validator, rec)
+                            : this.changed,
                     }}
                 />
             );
+        }
         const items = rec[fn];
         if (!!items.at(-1)) {
             items.push("");
@@ -440,14 +499,23 @@ export class CredForm extends React.Component<propsType, stateType> {
         return (
             <>
                 {items.map((oneValue, index) => {
+                    const fieldId = this.mkFieldId(fn, index);
+                    debugger;
+                    captureProblems.call(this, fieldId, rec[fn][index], index);
+
+                    const showProblem = submitting
+                        ? { problem: problems[fieldId] }
+                        : {};
                     return (
                         <Field
-                            key={`${fn}.${index} `}
+                            key={fieldId}
+                            {...showProblem}
                             {...{
                                 rec,
                                 as,
                                 fn,
                                 index,
+                                fieldId,
                                 label,
                                 placeholder,
                                 defaultValue,
@@ -455,7 +523,9 @@ export class CredForm extends React.Component<propsType, stateType> {
                                 rows,
                                 style,
                                 tableCellStyle,
-                                onChange: this.changed,
+                                onChange: validator
+                                    ? this.mkChangeValidator(fieldId, validator, rec, index)
+                                    : this.changed,
                             }}
                         />
                     );
@@ -463,10 +533,57 @@ export class CredForm extends React.Component<propsType, stateType> {
             </>
         );
 
-        // return "array"
+        function captureProblems(fieldId: string, rVal, fieldIndex) {
+            if (validator) {
+                const problem = validator(rVal || "", rec, fieldIndex);
+                if (problem && !problems[fieldId]) {
+                    this.setStateLater(({ problems }) => ({
+                        problems: {
+                            ...problems,
+                            [fieldId]: problem,
+                        },
+                    }));
+                }
+            }
+        }
+    }
+    setStateLater(...args) {
+        setTimeout(() => {
+            //@ts-expect-error
+            this.setState(...args);
+        }, 1);
     }
 
-    changed: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    validators: Record<string, ChangeHandler> = {};
+    mkChangeValidator(fieldId: string, validate: Function, rec : RegisteredCredential, index? : number): ChangeHandler {
+        const v = this.validators[fieldId];
+        if (v) return v;
+        const changedWithValidation: ChangeHandler = (e) => {
+            if (validate) {
+                debugger;
+                const value = e.target.value;
+                const problem = validate(value, rec, index);
+                if (this.state.problems[fieldId] !== problem) {
+                    this.setStateLater(({ problems }) => {
+                        const newState = {
+                            //! clears problems that have been corrected (i.e. [key] => ‹undefined›)
+                            //   ... using json-stringifying convention of skipping undef values
+                            problems: JSON.parse(JSON.stringify({
+                                ...problems,
+                                [fieldId]: problem,
+                            }))
+                        };
+                        debugger;
+                        return newState;
+                    });
+                }
+            }
+            return this.changed(e);
+        };
+        return (this.validators[fieldId] = changedWithValidation);
+    }
+
+    changed: ChangeHandler = (e) => {
         //! adds an empty item at the end of the list of expectations
         const {
             current: { expectations },
@@ -507,6 +624,13 @@ export class CredForm extends React.Component<propsType, stateType> {
         } = this.props;
         e.preventDefault();
         e.stopPropagation();
+
+        //! clears "undefined" problems that may have existed temporarily
+        const problems = JSON.parse(JSON.stringify(this.state.problems));
+        if (Object.keys(problems).length) {
+            this.setState({ problems, submitting: true });
+            return;
+        }
 
         const form = e.target as HTMLFormElement;
         const updatedCred = this.capture(form);
@@ -549,6 +673,10 @@ export class CredForm extends React.Component<propsType, stateType> {
             updateState(error.message, { error: true });
         }
     }
+    mkFieldId(fn: string, index?: number): string {
+        const idx = index || (index === 0 ? 0 : "");
+        return `${fn}.${index || ""}`;
+    }
 }
 
 function Field({
@@ -564,9 +692,11 @@ function Field({
     label,
     style,
     tableCellStyle,
+    fieldId,
+    validator,
+    problem,
     onChange,
 }: FieldProps) {
-    const fieldId = `${fn}.${index || ""}`;
     const rVal = rec[fn];
     let value = rVal;
 
@@ -578,39 +708,52 @@ function Field({
         style: { borderBottom: "none" },
     };
     const arrayTableStyle = isOnlyOrLastRow ? {} : noBottomBorder;
+    const helpId = fn;
+    const errorId = problem ? `problem-${fieldId}` : "";
     const renderedOptions = options
         ? options.map((s) => {
               const selected = value == s ? { selected: true } : {};
               return (
-                  <option value={s} {...selected}>
+                  <option key={s} value={s} {...selected}>
                       {s}
                   </option>
               );
           })
         : undefined;
+    const errorBorder = problem ? { border: "1px solid #f66" } : {};
     return (
         <tr {...arrayTableStyle}>
             <th>{!!index || <label htmlFor={fieldId}> {label}</label>}</th>
             <td style={tableCellStyle || {}}>
                 <As
                     autoComplete="off"
+                    className="invalid:border-pink-500"
                     style={{
                         width: "100%",
                         color: "#ccc",
                         fontWeight: "bold",
                         padding: "0.4em",
                         background: "#000",
+                        ...errorBorder,
                         ...style,
                     }}
                     id={fieldId}
+                    aria-invalid={errorId ? true : false}
+                    aria-describedby={`${helpId} ${errorId}`}
                     rows={rows}
                     name={fn}
                     onInput={onChange}
                     children={renderedOptions}
                     {...{ placeholder, defaultValue: value || defaultValue }}
                 ></As>
+                {problem && (
+                    <div id={errorId} className="text-[#f66]">
+                        {problem}
+                    </div>
+                )}
                 {isOnlyOrLastRow && helpText && (
                     <div
+                        id={helpId}
                         style={{
                             marginTop: "0.5em",
                             fontSize: "91%",
