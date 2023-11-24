@@ -660,7 +660,7 @@ export class CredForm extends React.Component<propsType, stateType> {
             updateState(`submitting the ${txnDescription} to the network`);
             refresh().then(async () => {
                 updateState(
-                    `The update will take few moments before it's confirmed`
+                    `The update will take a few moments before it's confirmed`
                 );
                 await new Promise((res) => setTimeout(res, 3000));
                 updateState("");

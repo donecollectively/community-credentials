@@ -211,13 +211,14 @@ export class CCRegistry extends DefaultCapo {
                 },
             }
         );
+        const tenMinutes = 1000 * 60 * 10;
 
         const authz: UutName = tcx.state.uuts.credListingAuthz;
         //  - send the credAuth UUT to the user
         const tcx2 = await credAuthority.delegate.txnReceiveAuthorityToken(
             tcx,
             this.uutsValue(authz)
-        );
+        ).validFor(tenMinutes);
 
         //  - combine the delegate-link with the `cred` to package it for on-chain storage
         //  - send the cred-listing UUT to the contract, with the right on-chain datum
@@ -381,9 +382,11 @@ export class CCRegistry extends DefaultCapo {
             new StellarTxnContext<any>()
         );
 
+        const tenMinutes = 1000 * 60 * 10;
         const tcx2 = tcx
             .attachScript(this.compiledScript)
-            .addInput(currentUtxo, this.activityUpdatingCredential());
+            .addInput(currentUtxo, this.activityUpdatingCredential())
+            .validFor(tenMinutes);
         return this.txnReceiveRegistryEntry(tcx2, credForUpdate);
     }
 

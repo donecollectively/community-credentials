@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@docsearch/react': ^3.2.1
-  '@donecollectively/stellar-contracts': git://github.com/donecollectively/stellar-contracts#v0.8.2
+  '@donecollectively/stellar-contracts': git://github.com/donecollectively/stellar-contracts#v0.8.3
   '@headlessui/react': ^1.7.2
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6
@@ -33,7 +33,7 @@ specifiers:
 
 dependencies:
   '@docsearch/react': 3.5.1_cccfvuyjnmee77bwg4wjyn6zre
-  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/36de77151f65e07db440779a29bb790de1d543dd
+  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/bf72e7bb2a5644d0dcae117d132441c8e10fd6ee
   '@headlessui/react': 1.7.15_biqbaboplfbrettd7655fr4n2y
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6_sfilzu25rkwkmvqsscsbq2fr4e
@@ -3339,10 +3339,10 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/donecollectively/stellar-contracts/36de77151f65e07db440779a29bb790de1d543dd:
-    resolution: {tarball: https://codeload.github.com/donecollectively/stellar-contracts/tar.gz/36de77151f65e07db440779a29bb790de1d543dd}
+  github.com/donecollectively/stellar-contracts/bf72e7bb2a5644d0dcae117d132441c8e10fd6ee:
+    resolution: {tarball: https://codeload.github.com/donecollectively/stellar-contracts/tar.gz/bf72e7bb2a5644d0dcae117d132441c8e10fd6ee}
     name: '@donecollectively/stellar-contracts'
-    version: 0.8.2
+    version: 0.8.3
     dependencies:
       semver: 7.5.3
     dev: false
