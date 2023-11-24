@@ -1,6 +1,6 @@
 {
     "name": "w3-community-certs",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "scripts": {
         "dev": "next dev -p 3040",
         "build": "next build",

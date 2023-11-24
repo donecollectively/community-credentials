@@ -218,7 +218,8 @@ export class CCRegistry extends DefaultCapo {
         const tcx2 = await credAuthority.delegate.txnReceiveAuthorityToken(
             tcx,
             this.uutsValue(authz)
-        ).validFor(tenMinutes);
+        );
+        tcx2.validFor(tenMinutes);
 
         //  - combine the delegate-link with the `cred` to package it for on-chain storage
         //  - send the cred-listing UUT to the contract, with the right on-chain datum
