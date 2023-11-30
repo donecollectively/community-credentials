@@ -1,6 +1,9 @@
 "use client";
 
-const ccrConfig = {
+const defaultNetwork = "mainnet";
+
+const preprodConfig = {
+    network: "preprod",
     mph: {
         bytes: "b1a0634ae5601f1922724edd9b29a097dd9b7ffa0b481dfaac4aaec6",
     },
@@ -14,6 +17,21 @@ const ccrConfig = {
     },
 };
 
+const mainnetConfig = {
+    network: "mainnet",
+    mph: {
+        bytes: "490b752ffdfdcbab4502a6e2ab219257fd17151c2e448e658b34b989",
+    },
+    rev: "1",
+    seedTxn: {
+        bytes: "411b895edb1847f297cb43922a9b08bd415f01696bc9d48942d59835e99507d7",
+    },
+    seedIndex: "0",
+    rootCapoScriptHash: {
+        bytes: "08ec3975a0755b653c4709aa65b7bc77b236c6c41b9e9a54cd044877",
+    },
+};
+
 import { NextPageContext } from "next";
 import { NextRouter, withRouter } from "next/router.js";
 import head from "next/head.js";
@@ -22,7 +40,13 @@ import link from "next/link.js";
 const Link = link.default;
 
 import { useRouter } from "next/router.js";
-import React, { MouseEventHandler, use, useEffect, useState } from "react";
+import React, {
+    ChangeEventHandler,
+    MouseEventHandler,
+    use,
+    useEffect,
+    useState,
+} from "react";
 import { Prose } from "@/components/Prose.jsx";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -47,6 +71,7 @@ import { Button } from "../../components/Button.js";
 import { ClientSideOnly } from "../../components/ClientSideOnly.js";
 import { inPortal } from "../../inPortal.js";
 import { Progress } from "../../components/Progress.js";
+import { Switch } from "../../components/Switch.jsx";
 
 // Helios types
 const { BlockfrostV0, Cip30Wallet, TxChain } = helios;
@@ -65,6 +90,8 @@ export type PageStatus = {
     progressBar?: true | string;
 };
 
+type NetworkName = "preprod" | "mainnet";
+
 type stateType = PageStatus & {
     credsRegistry?: CCRegistry;
     networkParams?: NetParams;
@@ -72,7 +99,7 @@ type stateType = PageStatus & {
     wallet?: hWallet;
     walletHelper?: WalletHelper;
     walletUtxos?: TxInput[];
-    networkName?: string;
+    networkName?: NetworkName;
     connectingWallet?: boolean;
     showDetail?: string;
     tcx?: StellarTxnContext<any>;
@@ -96,7 +123,6 @@ const networkNames = {
 };
 
 let mountCount = 0;
-
 // TODO:
 //   _x_   1.  change Stellar {signers} to be a list of addresses, not Wallets
 //   _x_   2.  avoid using Wallet's selected collateral utxo implicitly during findUtxo
@@ -111,11 +137,17 @@ let mountCount = 0;
 
 //   _x_   ?.  add actor collateral to TCX, on-demand and/or during addScript (when??)
 
+const bfKeys = {
+    mainnet: "mainnetvtlJdtsOo7nNwf58Az9F5HRDGCIkxujZ",
+    preprod: "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP"
+}
+
 export class CertsPage extends React.Component<paramsType, stateType> {
     bf: hBlockfrost;
     bfFast: hTxChain;
     static notProse = true;
     i: number;
+    mountedAt = Date.now();
     constructor(props) {
         super(props);
         this.i = mountCount += 1;
@@ -126,15 +158,27 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         this.connectWallet = this.connectWallet.bind(this);
         this.state = { status: "connecting to blockfrost" };
 
-        this.bf = new BlockfrostV0(
-            "preprod",
-            "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP"
-        );
-        this.bfFast = new TxChain(this.bf);
+        // this.bf = new BlockfrostV0(
+        //     "preprod",
+        //     "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP"
+        // );
+
+        this.setupBlockfrost()
     }
 
     get router() {
         return this.props.router;
+    }
+
+    setupBlockfrost(forceNetworkName?: NetworkName) {
+        const {networkName:cnn = defaultNetwork} = this.state || {}
+        const nn = forceNetworkName || cnn;
+
+        this.bf = new BlockfrostV0(
+            nn,
+            bfKeys[nn]
+        );
+        this.bfFast = new TxChain(this.bf);
     }
 
     async createCredential() {
@@ -359,7 +403,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
 
         const detail = showDetail ? (
             <Prose className={``}>
-                SHOWDETAIL
+                DETAIL
                 <pre>{showDetail}</pre>
             </Prose>
         ) : (
@@ -392,11 +436,22 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     }
 
     renderWalletInfo() {
-        const { wallet, networkName, connectingWallet } = this.state;
+        const {
+            wallet,
+            networkName = defaultNetwork,
+            connectingWallet,
+        } = this.state;
 
-        if (wallet) {
-            return <div>connected to {networkName}</div>;
-        } else if (connectingWallet) {
+        let networkIndicator = (
+            <span
+                key="chip-networkName"
+                className="inline-block text-center min-w-[5em] mb-0 rounded border border-slate-500 text-slate-400 text-sm px-2 py-0 bg-blue-900 shadow-none outline-none transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] hover:cursor-text"
+            >
+                {networkName}
+            </span>
+        );
+
+        if (connectingWallet) {
             return (
                 <div>
                     <Button variant="secondary" disabled className="-mt-3">
@@ -404,9 +459,12 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                     </Button>
                 </div>
             );
+        } else if (wallet) {
+            return networkIndicator;
         } else {
             return (
                 <div>
+                    {this.networkSwitcher()}
                     <Button
                         variant="secondary"
                         className="-mt-3"
@@ -421,6 +479,63 @@ export class CertsPage extends React.Component<paramsType, stateType> {
 
     onConnectButton: MouseEventHandler<HTMLButtonElement> = async (event) => {
         this.connectWallet();
+    };
+
+    networkSwitcher() {
+        const { networkName = defaultNetwork } = this.state;
+        const isMainnet = networkName == "mainnet";
+        const canBePreprod = (
+            <div
+                key={`chip-preprod`}
+                className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]"
+            >
+                preprod
+            </div>
+        );
+        const canBeMainnet = (
+            <div 
+            key={`chip-mainnet`}
+            className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]">mainnet</div>
+        );
+
+        let networkIndicator = (
+            <span
+                key={`chip-${networkName}`}
+                className="inline-block mx-2 hover:cursor-pointer text-center min-w-[5em] mb-0 rounded border border-slate-500 text-slate-400 text-sm px-2 py-0 bg-blue-900 shadow-none outline-none transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] "
+            >
+                {networkName}
+            </span>
+        );
+        if (isMainnet) {
+            return (
+                <div className="inline-block mr-4">
+                    <Switch 
+                    id="network-switcher"
+                    checked
+                    before={canBePreprod}
+                    after={networkIndicator}
+                     onChange={this.changeNetwork} />
+                </div>
+            );
+        } else {
+            return (
+                <div className="inline-block mr-4">
+                    <Switch 
+                    id="network-switcher"
+                    before={networkIndicator}
+                    after={canBeMainnet}
+                    onChange={this.changeNetwork} />
+                </div>
+            );
+        }
+    }
+
+    changeNetwork: ChangeEventHandler<HTMLInputElement> = async (e) => {
+        const { networkName: old = defaultNetwork } = this.state;
+        const networkName = old == "mainnet" ? "preprod" : "mainnet";
+        this.setupBlockfrost(networkName);
+        await this.updateState(`switching to ${networkName}`, {networkName }, "//user switched network pref");
+        this.connectCredsRegistry();
     };
 
     txnDump() {
@@ -478,7 +593,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     //  -- step 2: connect to Cardano wallet
     connectingWallet: Promise<any>;
     async connectWallet(autoNext = true) {
-        const { selectedWallet = "eternl" } = this.state;
+        const { networkName: pnn, selectedWallet = "eternl" } = this.state;
 
         //! it suppresses lame nextjs/react-sourced double-trigger of mount sequence
         // if (this._unmounted) return
@@ -501,20 +616,23 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         const handle: helios.Cip30Handle = await connecting;
 
         const networkName = networkNames[await handle.getNetworkId()];
-        if (networkName !== "preprod") {
-            return this.updateState(
-                `This application is only released on the preprod testnet for now.  Please switch to a preprod wallet.`,
-                { error: true }
-            );
-        }
-        if (this.bf.networkName !== networkName) {
-            //! checks that wallet network matches network params / bf
-            this.updateState(
-                `wallet network mismatch; expected ${this.bf.networkName}, wallet ${networkName}`,
-                { error: true }
-            );
-            return
-        }
+        this.setupBlockfrost(networkName)
+        // if (networkName !== "preprod") {
+        // if (networkName !== "mainnet") {
+        //         return this.updateState(
+        //         // `This application is only released on the preprod testnet for now.  Please switch to a preprod wallet.`,
+        //         `Wallet needs to be on mainnet`,
+        //             { error: true }
+        //     );
+        // }
+        // if (this.bf.networkName !== networkName) {
+        //     //! checks that wallet network matches network params / bf
+        //     this.updateState(
+        //         `wallet network mismatch; expected ${this.bf.networkName}, wallet ${networkName}`,
+        //         { error: true }
+        //     );
+        //     return
+        // }
         const wallet = new helios.Cip30Wallet(handle);
 
         const collateralUtxos = await handle.getCollateral();
@@ -535,7 +653,12 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         walletHelper.getUtxos().then((walletUtxos) => {
             this.updateState(undefined, { walletUtxos });
         });
-        return this.connectCredsRegistry(autoNext);
+        return this.connectCredsRegistry(autoNext).then(() => {
+            if (pnn !== networkName) {
+                this.updateState(`NOTE: wallet's network forced a switch to ${networkName}`, {}, "//network-did-switch-notice");
+                this.updateState("", {delay: 5000}, "//clear network-did-switch-notice");
+            }
+        });
     }
 
     // -- step 3 - check if the creds registry is ready for use
@@ -544,7 +667,10 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         if ("create" == route || "edit" == route) {
             await this.connectWallet();
         }
-        const { networkParams, wallet } = this.state;
+        const { networkParams, wallet, networkName=defaultNetwork } = this.state;
+        const isMainnet = wallet ? await wallet.isMainnet() : (networkName == "mainnet");
+
+        const ccrConfig = isMainnet ? mainnetConfig : preprodConfig;
         let config = ccrConfig
             ? { config: CCRegistry.parseConfig(ccrConfig) }
             : { partialConfig: {} };
@@ -554,6 +680,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             setup: {
                 network: this.bfFast,
                 networkParams,
+                isMainnet,
                 myActor: wallet,
                 isDev: "development" == process.env.NODE_ENV,
                 optimize: false,
@@ -563,6 +690,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         };
         try {
             const credsRegistry = new CCRegistry(cfg);
+            if (wallet) await credsRegistry.walletNetworkCheck;
             const isConfigured = await credsRegistry.isConfigured;
             if (!isConfigured) {
                 // alert("not configured");
@@ -588,7 +716,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                 "//searching (or freshening search after wallet connection)"
             );
 
-            this.fetchRegistryEntries();
+            return this.fetchRegistryEntries();
         } catch (error) {
             this.reportError(error, "checking registry configuration: ", {
                 nextAction: "initializeRegistry",
@@ -611,13 +739,14 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             ReturnType<stateType["credsRegistry"]["mkTxnMintCharterToken"]>
         >;
         try {
-            const addresses = await wallet.usedAddresses;
+            const used = await wallet.usedAddresses;
+            const unused = await wallet.unusedAddresses;
 
             tcx = await credsRegistry.mkTxnMintCharterToken({
                 govAuthorityLink: {
                     strategyName: "address",
                     config: {
-                        addrHint: addresses,
+                        addrHint: [...unused, ...used],
                     },
                 },
                 // mintDelegateLink: {
@@ -698,7 +827,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             );
         }
         await Promise.all(waiting);
-        this.updateState("", { allCreds, credsIndex });
+        return this.updateState("", { allCreds, credsIndex });
     }
 
     /**
@@ -716,7 +845,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
      **/
     updateState(
         status?: string,
-        stateProps: Omit<stateType, "status"> = {},
+        stateProps: Omit<stateType, "status"> & {delay?: number} = {} ,
         extraComment?: string
     ): Promise<any> {
         const {
@@ -725,13 +854,14 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             progressBar = undefined,
             error = undefined,
             actionLabel = undefined,
+            delay,
         } = stateProps;
 
         // if (this._unmounted) {
         //     console.warn(`suppressing state update after unmount (\"${status}\")`)
         //     return
         // }
-        console.log(`instance ${this.i}`, { status });
+        console.log(`instance ${this.i}`, { status, delay });
         const stateUpdate =
             "undefined" === typeof status
                 ? {}
@@ -747,8 +877,12 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             ...stateProps,
             ...stateUpdate,
         };
-        console.error(extraComment || "", { newState });
-        return new Promise<void>((resolve) => {
+        return  new Promise<void>(async (resolve) => {
+            console.error(extraComment || "", { newState });
+            if (delay) {
+                await new Promise((res) => setTimeout(res, delay));
+            }
+
             this.setState(newState, resolve);
         });
     }
@@ -756,5 +890,5 @@ export class CertsPage extends React.Component<paramsType, stateType> {
 }
 const certsPageWithRouter = withRouter(CertsPage);
 //@ts-expect-error
-certsPageWithRouter.nextPrev = false
-export default certsPageWithRouter
+certsPageWithRouter.nextPrev = false;
+export default certsPageWithRouter;

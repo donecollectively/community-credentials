@@ -42,7 +42,7 @@ When you return to this website at a later time and connect your wallet to the d
 
 ### Getting Started
 
-To register a credential entry on this site, you'll need to connect the preproduction testnet using the Eternl wallet.  Read more about [tech setup](tech-setup) here.
+To register a credential entry on this site, you'll need to connect using the Eternl wallet.  Read more about [tech setup](tech-setup) here.
 
 ### Entering your credential details
 

@@ -5,6 +5,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@import "./switch.css";
+
 .dark .callout strong {
     --tw-prose-bold: #00afe6;
 }
