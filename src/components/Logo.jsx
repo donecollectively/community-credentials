@@ -22,8 +22,8 @@ export function Logo(props) {
       <text x="38.8" y="25.5" fill="#ffffff" fontWeight="bold" fontSize="x-large">
         Cardano Skills {/* !!!customize */}
       </text>
-      <text x="38.8" y="45.5" fill="#ffffff" fontWeight="bold" fontSize="small">
-        by LearnerShape with Stellar Contracts {/* !!!customize */}
+      <text x="5" y="50" fill="#ffffff" fontWeight="bold" fontSize="small">
+        by LearnerShape & Stellar Contracts {/* !!!customize */}
       </text>
     </svg>
   )

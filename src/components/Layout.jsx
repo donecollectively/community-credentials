@@ -51,8 +51,12 @@ function Header({ navigation }) {
             </div>
             <div className="relative flex flex-grow basis-0 items-center">
                 <Link href="/" aria-label="Home page">
+                    <div className="lg:hidden ml-2 text-xl font-bold text-slate-700 float-right dark:text-sky-100">
+                        Cardano Skills
+                    </div>
                     <Logomark className="h-9 w-9 lg:hidden" />
                     <Logo className="hidden h-9 fill-slate-700 dark:fill-sky-100 lg:block" />
+                    
                 </Link>
                 <div className="ml-5 font-display dark:text-slate-400">
                     <div className="ml-5">

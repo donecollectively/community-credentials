@@ -66,10 +66,9 @@ export class CredsList extends React.Component<paramsType, stateType> {
                         <tr>
                             <td colSpan={2}>
                                 <button
-                                    className="btn border rounded"
+                                    className="btn border rounded mt-1"
                                     style={{
                                         padding: "0.75em",
-                                        marginLeft: "0.5em",
                                         // marginTop: '-0.75em',
                                         border: "1px solid #162ed5",
                                         borderRadius: "0.5em",
