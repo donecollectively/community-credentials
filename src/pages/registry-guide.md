@@ -56,7 +56,8 @@ Please let people know how you administor or govern the issuance process, too.
 
 #### Ideas for Credentials?
 
-If you're part of a team, organization or community who doesn't yet have such credentials, but you could benefit from having a digital credential, please list those too, as best you can.  
+If you're part of a team, organization or community who doesn't yet have such credentials, but you could benefit from having contributors who'd hold such a credential, please list those too, as best you can.  
 
 Imagine that people could acquire, and then use that credential within an application or program, thus connecting a human issuance process to digitally-authenticated activities within a dApp such as a voting system, DeFi protocol or other decentralized ecosystem application.
 
+If you want to experiment and discuss thing together, we'd suggest switching to Preprod for that exploration.  When you're satisfied, just transfer your final version to mainnet.  This is a safe place to try things on for size.
