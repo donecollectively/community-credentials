@@ -16,7 +16,7 @@ This directory won't show you a list of people HAVING these credentials - instea
 
 ### Who this is for?
 
-If you're interested in seeing credentials being offered by various organizations, you won't need to follow the information on this page.  Simply click on the Credentials menu item on the left.
+If you're interested in seeing credentials being offered by various organizations, you won't need to follow the information on this page.  Simply click on the [Certifications](/community-credentials/certifications) menu item.
 
 If you're interested in proposing a credential that you or your organization or community would like to offer people, this guide is for you!  Registering an idea for a credential, or a credential your community may already offer, helps other people be aware of what those ideas and credentials are.
 
@@ -50,7 +50,7 @@ Start by clicking the List a Credential button on the [Certifications](/communit
 
 #### Existing Credential Programs
 
-If you are part of an organization already issuing credentials with AtalaPRISM, simply fill in the details of your credential, how it's issued, and what expectations people should have about someone who holds this credential.
+If you are part of an organization already issuing credentials with AtalaPRISM: fill in the details of your credential, how it's issued, and what expectations people should have about someone who holds this credential.
 
 Please let people know how you administor or govern the issuance process, too.
 
