@@ -484,18 +484,19 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     networkSwitcher() {
         const { networkName = defaultNetwork } = this.state;
         const isMainnet = networkName == "mainnet";
+        const networkNameUc = networkName.slice(0,1).toUpperCase() + networkName.slice(1)
         const canBePreprod = (
             <div
                 key={`chip-preprod`}
                 className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]"
             >
-                preprod
+                Preprod
             </div>
         );
         const canBeMainnet = (
             <div 
             key={`chip-mainnet`}
-            className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]">mainnet</div>
+            className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]">Mainnet</div>
         );
 
         let networkIndicator = (
@@ -503,7 +504,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                 key={`chip-${networkName}`}
                 className="inline-block mx-2 hover:cursor-pointer text-center min-w-[5em] mb-0 rounded border border-slate-500 text-slate-400 text-sm px-2 py-0 bg-blue-900 shadow-none outline-none transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] "
             >
-                {networkName}
+                {networkNameUc}
             </span>
         );
         if (isMainnet) {
