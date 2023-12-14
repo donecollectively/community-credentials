@@ -1,36 +1,12 @@
 "use client";
 
-const defaultNetwork = "mainnet";
+const defaultNetwork = "preprod";
+
+// const preprodConfig = null;
+
+// const mainnetConfig = null
 
 const preprodConfig = {
-    mph: {
-        bytes: "4dd57353cb8418d92912293dadf3b1b66cdbbd777ef6acbbc25f4989",
-    },
-    rev: "1",
-    seedTxn: {
-        bytes: "11abb6bd2d0027982f118e15ad86efc069efbaccb0a39318557ead52e9c480c2",
-    },
-    seedIndex: "4",
-    rootCapoScriptHash: {
-        bytes: "f1edcfd630ebb17b6eb2d57de8eeb677ac79bd5921791c150d2d46ac",
-    },
-};
-
-const mainnetConfig = {
-    mph: {
-        bytes: "4ab5a70f171221c00ffc10c01190f50abab084fe70842264fbe8dd71",
-    },
-    rev: "1",
-    seedTxn: {
-        bytes: "24634099437188629641b32fd750f643f9eaca8206e1d4c1ec45a4b4fe18b0e4",
-    },
-    seedIndex: "1",
-    rootCapoScriptHash: {
-        bytes: "77ed134895d1c53cc58a374fa982aaf85825000c68cdda343a707b66",
-    },
-};
-
-const preprodConfigPrev = {
     network: "preprod",
     mph: {
         bytes: "b1a0634ae5601f1922724edd9b29a097dd9b7ffa0b481dfaac4aaec6",
@@ -45,18 +21,18 @@ const preprodConfigPrev = {
     },
     scriptContent: {
         capo: {
-            bytes: "tbd",
+            bytes: "tbd"
         },
         minter: {
-            bytes: "tbd",
+            bytes: "tbd"
         },
         mintDelegate: {
-            bytes: "tbd",
-        },
-    },
+            bytes: "tbd"
+        }
+    }
 };
 
-const mainnetConfigPrev = {
+const mainnetConfig = {
     network: "mainnet",
     mph: {
         bytes: "490b752ffdfdcbab4502a6e2ab219257fd17151c2e448e658b34b989",
@@ -97,15 +73,16 @@ import {
     WalletHelper,
     dumpAny,
     helios,
-} from "@donecollectively/stellar-contracts";
+} from "stellar-contracts-v0.8.4";
 import {
-    CCRegistryV06,
+    CCRegistryV05 as CCRegistry,
     RegisteredCredentialForUpdate,
     RegisteredCredentialOnchain,
-} from "../../contracts/current/CCRegistry.js";
-import { CredForm } from "../../components/certifications/current/CredForm.jsx";
-import { CredsList } from "../../components/certifications/current/CredsList.jsx";
-import { CredView } from "../../components/certifications/current/CredView.jsx";
+} from "../../contracts/v0.5/CCRegistry.js";
+
+import { CredForm } from "../../components/certifications/v0.5/CredForm.jsx";
+import { CredsList } from "../../components/certifications/v0.5/CredsList.jsx";
+import { CredView } from "../../components/certifications/v0.5/CredView.jsx";
 import { Button } from "../../components/Button.js";
 import { ClientSideOnly } from "../../components/ClientSideOnly.js";
 import { inPortal } from "../../inPortal.js";
@@ -132,7 +109,7 @@ export type PageStatus = {
 type NetworkName = "preprod" | "mainnet";
 
 type stateType = PageStatus & {
-    credsRegistry?: CCRegistryV06;
+    credsRegistry?: CCRegistry;
     networkParams?: NetParams;
     selectedWallet?: string;
     wallet?: hWallet;
@@ -178,8 +155,8 @@ let mountCount = 0;
 
 const bfKeys = {
     mainnet: "mainnetvtlJdtsOo7nNwf58Az9F5HRDGCIkxujZ",
-    preprod: "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP",
-};
+    preprod: "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP"
+}
 
 export class CertsPage extends React.Component<paramsType, stateType> {
     bf: hBlockfrost;
@@ -202,7 +179,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         //     "preprodCwAM4ABR6SowGsmURORvDJvQTyWmCHJP"
         // );
 
-        this.setupBlockfrost();
+        this.setupBlockfrost()
     }
 
     get router() {
@@ -210,10 +187,13 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     }
 
     setupBlockfrost(forceNetworkName?: NetworkName) {
-        const { networkName: cnn = defaultNetwork } = this.state || {};
+        const {networkName:cnn = defaultNetwork} = this.state || {}
         const nn = forceNetworkName || cnn;
 
-        this.bf = new BlockfrostV0(nn, bfKeys[nn]);
+        this.bf = new BlockfrostV0(
+            nn,
+            bfKeys[nn]
+        );
         this.bfFast = new TxChain(this.bf);
     }
 
@@ -224,14 +204,14 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         }
 
         await this.updateState("", {}, "//triggering creation screen");
-        this.router.push(`/certifications/create`, "", { shallow: true });
-        // window.history.pushState("", "", "/certifications/create")
+        this.router.push(`/certifications-v0.5/create`, "", { shallow: true });
+        // window.history.pushState("", "", "/certifications-v0.5/create")
     }
 
     editCredential(id: string) {
         throw new Error(`unused`);
         this.updateState("", {}, "//edit credential via router");
-        // this.router.push(`/certifications/${id}/edit`);
+        // this.router.push(`/certifications-v0.5/${id}/edit`);
     }
 
     closeForm() {
@@ -286,6 +266,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             showDetail,
             error,
             nextAction,
+            networkName,
             actionLabel: actionMessage,
             moreInstructions,
         } = this.state;
@@ -370,7 +351,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
                     </>
                 )) ||
             "";
-
+        
         if (!allCreds) {
             results = inPortal("topCenter", loading);
         } else if ("create" == route) {
@@ -520,8 +501,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
     networkSwitcher() {
         const { networkName = defaultNetwork } = this.state;
         const isMainnet = networkName == "mainnet";
-        const networkNameUc =
-            networkName.slice(0, 1).toUpperCase() + networkName.slice(1);
+        const networkNameUc = networkName.slice(0,1).toUpperCase() + networkName.slice(1)
         const canBePreprod = (
             <div
                 key={`chip-preprod`}
@@ -531,12 +511,9 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             </div>
         );
         const canBeMainnet = (
-            <div
-                key={`chip-mainnet`}
-                className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]"
-            >
-                Mainnet
-            </div>
+            <div 
+            key={`chip-mainnet`}
+            className="inline-block text-[#999] mx-2 text-sm hover:cursor-pointer text-center min-w-[5em]">Mainnet</div>
         );
 
         let networkIndicator = (
@@ -550,24 +527,22 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         if (isMainnet) {
             return (
                 <div className="inline-block mr-4">
-                    <Switch
-                        id="network-switcher"
-                        checked
-                        before={canBePreprod}
-                        after={networkIndicator}
-                        onChange={this.changeNetwork}
-                    />
+                    <Switch 
+                    id="network-switcher"
+                    checked
+                    before={canBePreprod}
+                    after={networkIndicator}
+                     onChange={this.changeNetwork} />
                 </div>
             );
         } else {
             return (
                 <div className="inline-block mr-4">
-                    <Switch
-                        id="network-switcher"
-                        before={networkIndicator}
-                        after={canBeMainnet}
-                        onChange={this.changeNetwork}
-                    />
+                    <Switch 
+                    id="network-switcher"
+                    before={networkIndicator}
+                    after={canBeMainnet}
+                    onChange={this.changeNetwork} />
                 </div>
             );
         }
@@ -575,13 +550,9 @@ export class CertsPage extends React.Component<paramsType, stateType> {
 
     changeNetwork: ChangeEventHandler<HTMLInputElement> = async (e) => {
         const { networkName: old = defaultNetwork } = this.state;
-        const networkName = old == "mainnet" ? "preprod" : "mainnet";
+        const networkName = "preprod"
         this.setupBlockfrost(networkName);
-        await this.updateState(
-            `switching to ${networkName}`,
-            { networkName },
-            "//user switched network pref"
-        );
+        await this.updateState(`switching to ${networkName}`, {networkName }, "//user switched network pref");
         this.connectCredsRegistry();
     };
 
@@ -663,7 +634,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         const handle: helios.Cip30Handle = await connecting;
 
         const networkName = networkNames[await handle.getNetworkId()];
-        this.setupBlockfrost(networkName);
+        this.setupBlockfrost(networkName)
         // if (networkName !== "preprod") {
         // if (networkName !== "mainnet") {
         //         return this.updateState(
@@ -702,12 +673,8 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         });
         return this.connectCredsRegistry(autoNext).then(() => {
             if (pnn !== networkName) {
-                // this.updateState(
-                //     `NOTE: wallet's network forced a switch to ${
-                //         networkName
-                //     }`, {clearAfter: 5000
-                // }, "//network-did-switch-notice");
-                // this.updateState("", {delay: 5000}, "//clear network-did-switch-notice");
+                this.updateState(`NOTE: wallet's network forced a switch to ${networkName}`, {}, "//network-did-switch-notice");
+                this.updateState("", {delay: 5000}, "//clear network-did-switch-notice");
             }
         });
     }
@@ -718,22 +685,16 @@ export class CertsPage extends React.Component<paramsType, stateType> {
         if ("create" == route || "edit" == route) {
             await this.connectWallet();
         }
-        const {
-            networkParams,
-            wallet,
-            networkName = defaultNetwork,
-        } = this.state;
-        const isMainnet = wallet
-            ? await wallet.isMainnet()
-            : networkName == "mainnet";
+        const { networkParams, wallet, networkName=defaultNetwork } = this.state;
+        const isMainnet = wallet ? await wallet.isMainnet() : (networkName == "mainnet");
 
         const ccrConfig = isMainnet ? mainnetConfig : preprodConfig;
         let config = ccrConfig
-            ? { config: CCRegistryV06.parseConfig(ccrConfig) }
+            ? { config: CCRegistry.parseConfig(ccrConfig) }
             : { partialConfig: {} };
 
         if (!wallet) console.warn("connecting to registry with no wallet");
-        let cfg: StellarConstructorArgs<ConfigFor<CCRegistryV06>> = {
+        let cfg: StellarConstructorArgs<ConfigFor<CCRegistry>> = {
             setup: {
                 network: this.bfFast,
                 networkParams,
@@ -746,7 +707,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             ...config,
         };
         try {
-            const credsRegistry = new CCRegistryV06(cfg);
+            const credsRegistry = new CCRegistry(cfg);
             if (wallet) await credsRegistry.walletNetworkCheck;
             const isConfigured = await credsRegistry.isConfigured;
             if (!isConfigured) {
@@ -902,10 +863,7 @@ export class CertsPage extends React.Component<paramsType, stateType> {
      **/
     updateState(
         status?: string,
-        stateProps: Omit<stateType, "status"> & {
-            clearAfter?: number;
-            delay?: number;
-        } = {},
+        stateProps: Omit<stateType, "status"> & {delay?: number} = {} ,
         extraComment?: string
     ): Promise<any> {
         const {
@@ -915,14 +873,13 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             error = undefined,
             actionLabel = undefined,
             delay,
-            clearAfter,
         } = stateProps;
 
         // if (this._unmounted) {
         //     console.warn(`suppressing state update after unmount (\"${status}\")`)
         //     return
         // }
-        console.log(`instance ${this.i}`, { status, delay, clearAfter });
+        console.log(`instance ${this.i}`, { status, delay });
         const stateUpdate =
             "undefined" === typeof status
                 ? {}
@@ -938,20 +895,10 @@ export class CertsPage extends React.Component<paramsType, stateType> {
             ...stateProps,
             ...stateUpdate,
         };
-        return new Promise<void>(async (resolve) => {
+        return  new Promise<void>(async (resolve) => {
             console.error(extraComment || "", { newState });
             if (delay) {
                 await new Promise((res) => setTimeout(res, delay));
-            }
-            if (clearAfter) {
-                setTimeout(() => {
-                    if (this.state.status == status)
-                        this.updateState(
-                            status,
-                            {},
-                            "//clear previous message"
-                        );
-                });
             }
 
             this.setState(newState, resolve);

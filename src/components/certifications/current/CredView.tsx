@@ -8,13 +8,13 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Prose } from "@/components/Prose.jsx";
 import { useLiveQuery } from "dexie-react-hooks";
-import { RegisteredCredentialOnchain, RegisteredCredentialForUpdate } from "../../contracts/CCRegistry.js";
-import { Markdoc } from "../Markdoc.jsx";
+import { RegisteredCredentialOnchain, RegisteredCredentialForUpdate } from "../../../contracts/current/CCRegistry.js";
+import { Markdoc } from "../../Markdoc.js";
 import { helios } from "@donecollectively/stellar-contracts";
-import { ClientSideOnly } from "../ClientSideOnly.jsx";
-import { inPortal } from "../../inPortal.jsx";
+import { ClientSideOnly } from "../../ClientSideOnly.js";
+import { inPortal } from "../../../inPortal.js";
 import { credRegistryProps } from "./sharedPropTypes.js";
-import { Button } from "../Button.jsx";
+import { Button } from "../../Button.js";
 import link from "next/link.js"; const Link = link.default
 
 // ViewCert.getInitialPXXrops = async (ctx) => {

@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@docsearch/react': ^3.2.1
-  '@donecollectively/stellar-contracts': git://github.com/donecollectively/stellar-contracts#v0.8.4
+  '@donecollectively/stellar-contracts': git://github.com/donecollectively/stellar-contracts#experimental
   '@headlessui/react': ^1.7.2
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6
@@ -26,6 +26,7 @@ specifiers:
   react: 18.2.0
   react-dom: 18.2.0
   rollup-plugin-string: ^3.0.0
+  stellar-contracts-v0.8.4: git://github.com/donecollectively/stellar-contracts#v0.8.4
   tailwindcss: ^3.3.5
   typescript: 5.2.2
   vite: ^4.5.0
@@ -33,7 +34,7 @@ specifiers:
 
 dependencies:
   '@docsearch/react': 3.5.1_cccfvuyjnmee77bwg4wjyn6zre
-  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/f31ac892c028f06b9e442f9477ea8f0a0fdc0a34
+  '@donecollectively/stellar-contracts': github.com/donecollectively/stellar-contracts/b705e8d4eff8db879796b14a99c8597dc8a4bbde
   '@headlessui/react': 1.7.15_biqbaboplfbrettd7655fr4n2y
   '@markdoc/markdoc': 0.1.7
   '@markdoc/next.js': 0.1.6_sfilzu25rkwkmvqsscsbq2fr4e
@@ -51,6 +52,7 @@ dependencies:
   prism-react-renderer: 1.3.5_react@18.2.0
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  stellar-contracts-v0.8.4: github.com/donecollectively/stellar-contracts/f31ac892c028f06b9e442f9477ea8f0a0fdc0a34
   tailwindcss: 3.3.5
 
 devDependencies:
@@ -3338,6 +3340,14 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  github.com/donecollectively/stellar-contracts/b705e8d4eff8db879796b14a99c8597dc8a4bbde:
+    resolution: {tarball: https://codeload.github.com/donecollectively/stellar-contracts/tar.gz/b705e8d4eff8db879796b14a99c8597dc8a4bbde}
+    name: '@donecollectively/stellar-contracts'
+    version: 0.8.5-alpha50
+    dependencies:
+      semver: 7.5.3
+    dev: false
 
   github.com/donecollectively/stellar-contracts/f31ac892c028f06b9e442f9477ea8f0a0fdc0a34:
     resolution: {tarball: https://codeload.github.com/donecollectively/stellar-contracts/tar.gz/f31ac892c028f06b9e442f9477ea8f0a0fdc0a34}

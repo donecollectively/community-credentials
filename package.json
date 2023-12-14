@@ -1,6 +1,6 @@
 {
     "name": "w3-community-certs",
-    "version": "0.5.0",
+    "version": "0.6.0-alpha1",
     "homepage": "https://donecollectively.github.io/community-credentials",
     "scripts": {
         "dev": "next dev -p 3040",
@@ -28,7 +28,8 @@
     "browserslist": "defaults, not ie <= 11",
     "dependencies": {
         "@docsearch/react": "^3.2.1",
-        "@donecollectively/stellar-contracts": "git://github.com/donecollectively/stellar-contracts#v0.8.4",
+        "stellar-contracts-v0.8.4": "git://github.com/donecollectively/stellar-contracts#v0.8.4",
+        "@donecollectively/stellar-contracts": "git://github.com/donecollectively/stellar-contracts#experimental",
         "@headlessui/react": "^1.7.2",
         "@markdoc/markdoc": "0.1.7",
         "@markdoc/next.js": "0.1.6",

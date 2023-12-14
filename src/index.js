@@ -10,6 +10,7 @@ export const navigation = [
         title: "Certifications and Providers",
         links: [
             { title: "Certifications", href: "/certifications" },
+            { title: "   previous v0.5", href: "/certifications-v0.5" },
             { title: "Certification Providers", href: "/providers" },
             // { title: "Communities", href: "/communities" },
         ],

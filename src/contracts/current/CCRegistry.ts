@@ -65,7 +65,7 @@ export type RegisteredCredentialUpdated = {
     updated: RegisteredCredential;
 } & RegisteredCredentialForUpdate;
 
-export class CCRegistry extends DefaultCapo {
+export class CCRegistryV06 extends DefaultCapo {
     get specializedCapo() {
         return mkHeliosModule(
             specializedCapo,

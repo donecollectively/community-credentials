@@ -1,10 +1,10 @@
 import React from "react";
-import { CCRegistry, RegisteredCredentialForUpdate, RegisteredCredentialOnchain } from "../../contracts/CCRegistry.js";
-import { Prose } from "../Prose.jsx";
+import { CCRegistryV06, RegisteredCredentialForUpdate, RegisteredCredentialOnchain } from "../../../contracts/current/CCRegistry.js";
+import { Prose } from "../../Prose.jsx";
 import link from "next/link.js"; const Link = link.default;
 
 type paramsType = {
-    credsRegistry: CCRegistry;    
+    credsRegistry: CCRegistryV06;    
     allCreds: RegisteredCredentialForUpdate[];
     // refreshCreds: Function;
     credsStatus: string;

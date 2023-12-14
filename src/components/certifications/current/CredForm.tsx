@@ -6,18 +6,18 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import {
-    CCRegistry,
+    CCRegistryV06,
     RegisteredCredential,
     RegisteredCredentialOnchain,
     RegisteredCredentialForUpdate,
-} from "../../contracts/CCRegistry.js";
-import { Prose } from "../Prose.jsx";
+} from "../../../contracts/current/CCRegistry.js";
+import { Prose } from "../../Prose.jsx";
 import head from "next/head.js";
 const Head = head.default;
 
 import { TxOutput, Wallet, dumpAny } from "@donecollectively/stellar-contracts";
 import { credRegistryProps } from "./sharedPropTypes.js";
-import { CertsPage } from "../../pages/certifications/[...args].jsx";
+import { CertsPage } from "../../../pages/certifications/[...args].js";
 import { NextRouter } from "next/router.js";
 import { CredView } from "./CredView.jsx";
 

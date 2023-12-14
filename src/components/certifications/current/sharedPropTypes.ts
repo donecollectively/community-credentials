@@ -1,5 +1,5 @@
 import { TxInput, WalletHelper, helios } from "@donecollectively/stellar-contracts";
-import { CCRegistry } from "../../contracts/CCRegistry.js"
+import { CCRegistry } from "../../../contracts/current/CCRegistry.js"
 
 const { BlockfrostV0, Cip30Wallet, TxChain } = helios;
 type hBlockfrost = typeof BlockfrostV0.prototype;
