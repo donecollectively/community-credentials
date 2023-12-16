@@ -1,6 +1,6 @@
 {
     "name": "w3-community-certs",
-    "version": "0.6.0-alpha3",
+    "version": "0.6.0",
     "homepage": "https://donecollectively.github.io/community-credentials",
     "scripts": {
         "dev": "next dev -p 3040",

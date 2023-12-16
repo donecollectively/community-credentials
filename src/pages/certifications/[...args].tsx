@@ -4,29 +4,29 @@ const defaultNetwork = "mainnet";
 
 const preprodConfig = {
     mph: {
-        bytes: "4dd57353cb8418d92912293dadf3b1b66cdbbd777ef6acbbc25f4989",
+        bytes: "56e28114e549bdb5fd437beab6124ac7009c591bbe5acbda914ecd08",
     },
     rev: "1",
     seedTxn: {
-        bytes: "11abb6bd2d0027982f118e15ad86efc069efbaccb0a39318557ead52e9c480c2",
+        bytes: "389f7fda149b55f850a5c26ab0f1094c9aa8d4c0b722bae7a72444651e71e44f",
     },
-    seedIndex: "4",
+    seedIndex: "3",
     rootCapoScriptHash: {
-        bytes: "f1edcfd630ebb17b6eb2d57de8eeb677ac79bd5921791c150d2d46ac",
+        bytes: "7cbc68d3ea45b21cfb357c69d63810b7e80f400e2e8d56d3c1e99b51",
     },
 };
 
 const mainnetConfig = {
     mph: {
-        bytes: "4ab5a70f171221c00ffc10c01190f50abab084fe70842264fbe8dd71",
+        bytes: "2c832cb58aca2126e2e2064a60d7c55625094d5b788670fa816cdddf",
     },
     rev: "1",
     seedTxn: {
-        bytes: "24634099437188629641b32fd750f643f9eaca8206e1d4c1ec45a4b4fe18b0e4",
+        bytes: "6a38bf0ea70dbdf6c8a21012d3d59db7886969c76f3b3196bc95dbf57d4ab28e",
     },
-    seedIndex: "1",
+    seedIndex: "3",
     rootCapoScriptHash: {
-        bytes: "77ed134895d1c53cc58a374fa982aaf85825000c68cdda343a707b66",
+        bytes: "0f6244e28379ceebac20caa0d91b0c577236939dc7f3b932dffbdfa0",
     },
 };
 
